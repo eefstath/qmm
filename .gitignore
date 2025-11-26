@@ -1,0 +1,16 @@
+# Jupyter autosave folders
+.ipynb_checkpoints
+
+# Python cache
+__pycache__/
+*.pyc
+
+# VM envs
+venv/
+.env/
+
+# OS Junk
+.DS_Store
+
+# Vim backups
+*.swp
