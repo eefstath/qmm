@@ -378,7 +378,7 @@ plt.show()
 # \end{pmatrix}$$
 #
 # Because $|q_{t+1}⟩ = B|q_{t}⟩$ and
-
+#
 # \begin{pmatrix}
 # \frac{1}{2} \\\\
 # \frac{1}{2} \\\\
