@@ -1,5 +1,7 @@
 # Jupyter autosave folders
 .ipynb_checkpoints
+# Jupyter notebooks
+*.ipynb
 
 # Python cache
 __pycache__/
