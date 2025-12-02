@@ -366,7 +366,7 @@ plt.show()
 # $$|q_{t+1}⟩ = \frac{\sqrt{2}-1}{\sqrt{2}}|00⟩ + \frac{2}{\sqrt{2}}|01⟩ + \frac{1}{\sqrt{2}}|10⟩ + |11⟩$$
 #
 # And for starting state:
-# $$|q_{0}⟩ = \frac{1}{2}(|00⟩ + |01⟩ + |10⟩ + |11⟩)$$
+# $$|q_{t}⟩ = \frac{1}{2}(|00⟩ + |01⟩ + |10⟩ + |11⟩)$$
 #
 # The matrix should look like this:
 # $$B =
@@ -378,7 +378,7 @@ plt.show()
 # \end{pmatrix}$$
 #
 # Because $|q_{t+1}⟩ = B|q_{t}⟩$ and
-#
+# $$|q_{t}⟩ =
 # \begin{pmatrix}
 # \frac{1}{2} \\\\
 # \frac{1}{2} \\\\
@@ -409,5 +409,5 @@ print_log('info', "Is Matrix UB Unitary?:\n", validate_unitary(UB))
 
 # %% [markdown]
 # Since UB is unitary, we can now perform calculation to obtain next state
-# $|q_{t+1}⟩ = UB|q_{t}⟩
+# $|q_{t+1}⟩ = UB|q_{t}⟩$
 
