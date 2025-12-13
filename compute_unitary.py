@@ -16,7 +16,241 @@
 # ---
 
 # %% [markdown]
-# # Compute Unitary Matrix
+# # <a id="header-title-anchor"> Quantum Markov models
+# **Date**: 2023-01-25 <br>
+# **Author**: Emmanouil Efstathiou <br>
+# **Email**: manolis_ef@hotmail.com <br>
+#
+# ---
+#
+# **MSc**: Quantum Computing and Quantum Technologies <br>
+# **University**: Demokritus University of Thrace <br>
+# **Supervisor**: Ioannis Karafillidis <br>
+
+# %% [markdown]
+# <div style="background-color: #E0E0E0;
+#             padding-right: 5px;
+#             padding-left: 5px;
+#             border-radius: 8px">
+# <h5>Note</h5>
+# <b><sup>{X}</sup></b> is a placeholder for <b>definitions</b> (created by myself) <br>
+# <b><sup>[Y]</sup></b> is a placeholder for <b>references</b>
+
+# %% [markdown]
+# ## Contents
+# - [Code prerequisites](#code-preq-title-anchor)
+# - [Markov Chains](#markov-chains-title-anchor)
+#   - [Transitions](#transitions-subtitle-anchor)
+#   - [Classical Coin Flip Example](#classical-coin-flip-example-subtitle-anchor)
+# - [Compute Unitary Matrix](#compute-unitary-matrix-title-anchor)
+# - [Appendix](#appendix-title-anchor)
+#   - [Definitions](#definitions-subtitle-anchor)
+# - [References](#references-title-anchor)
+
+# %% [markdown]
+# ## <a id="code-preq-title-anchor"> Code prerequisites
+
+# %% {"jupyter": {"source_hidden": true}}
+# Imports
+import sys
+from datetime import datetime
+import numpy as np
+from scipy.linalg import sqrtm
+# Graph option 1
+import networkx as nx
+import matplotlib.pyplot as plt
+# Graph option 2
+from graphviz import Digraph
+
+# %% {"jupyter": {"source_hidden": true}}
+# Colors
+RED = '\033[91m'
+BLUE = '\033[94m'
+YELLOW = '\033[93m'
+GREEN = '\033[92m'
+RESET = '\033[0m'
+
+# %% {"jupyter": {"source_hidden": true}}
+# Logging function
+# Print (at least debug) logs
+#   Args:
+#       level: log level [debug, info, error]
+#       rest of args: message
+def print_log(level, *args):
+    # Set debug mode
+    debug = False
+    # debug = True
+
+    # Set timestamp format
+    timestamp = datetime.now().strftime('%m-%d %H:%M:%S')
+
+    # Set colors based on level
+    if level == 'debug': color = YELLOW
+    elif level == 'info': color = BLUE
+    elif level == 'error': color = RED
+    else: print_log('error', 'Invalid log level')
+
+    # Get message
+    message = ' '.join(map(str, args))
+    if (level != 'debug') or (debug and level == 'debug'):
+        print(f'[{timestamp}][{color}{level}{RESET}]\n{message}')
+
+    # Exit if error
+    if level == 'error': sys.exit(1)
+
+# %% {"jupyter": {"source_hidden": true}}
+# Plot function
+#   Args:
+#       N: matrix with all nodes, example n=('|00⟩', '|01⟩', '|10⟩', '|11⟩')
+#       E: matrix with all edges, example e=(('|00⟩', '|01⟩', 1), ('|00⟩', '|10⟩', 1))
+#       title: title of the plot
+#   Prints plot
+def plot_graph(N, E, title):
+    print_log('debug', ">>> Starting function: plot_graph")
+    print_log('debug', ">>> Nodes:\n", N)
+    print_log('debug', ">>> Edges:\n", E)
+    print_log('debug', ">>> Title:\n", title)
+
+    # Exit if no node exists
+    if not N: print_log('error', 'No node exists')
+
+    G = nx.DiGraph()            # Create graph
+    G.add_nodes_from(N)         # Add nodes
+    pos = nx.planar_layout(G)   # Layout
+
+
+    # Manipulate edges
+    ext_edges=[]
+    int_edges=[]
+    for (u, v, w) in E:
+        if u == v: int_edges.append((u, v, w))
+        else:      ext_edges.append((u, v, w))
+
+    # Draw nodes
+    nx.draw(
+        G, pos,
+        with_labels=True,
+        node_color='lightblue',
+        edge_color='gray'
+    )
+
+    # Draw external edges
+    print_log('debug', ">>> External edges:\n", ext_edges)
+    if ext_edges:
+        nx.draw_networkx_edges(
+            G, pos,
+            edgelist=ext_edges,
+            edge_color='gray',
+            arrows=True,
+            connectionstyle='arc3, rad=0.2',
+        )
+
+    # Draw internal edges
+    print_log('debug', ">>> Internal edges:\n", int_edges)
+    if int_edges:
+        nx.draw_networkx_edges(
+            G, pos,
+            edgelist=int_edges,
+            edge_color='gray',
+            connectionstyle='arc3, rad=0.2'
+        )
+
+    # Draw edge labels
+    for (u, v, w) in E: G.add_edge(u, v, weight=w)
+    edge_weights = nx.get_edge_attributes(G, 'weight')
+    print_log('debug', ">>> Edge weights:\n", edge_weights)
+    nx.draw_networkx_edge_labels(
+        G, pos,
+        edge_labels=edge_weights,
+        label_pos=0.3
+    )
+
+    # Show plot
+    plt.title(title)
+    plt.show()
+    print_log('debug', ">>> Finished function: plot_graph")
+
+# %% [markdown]
+# ## <a id="markov-chains-title-anchor"> Markov Chains
+# A Markov Chain
+# <sup>
+#   [[1]](#stochastic-model-ref-anchor)
+#   [[2]](#markov-chain-ref-anchor)
+#   [[3]](#markov-chain-simplified-ref-anchor)
+# </sup>
+# is a stochastic model
+# <sup>
+#   [{1}](#stochastic-model-def-anchor)
+# </sup>
+# where the probability of a state at time $t+1$ only depends on the state at time $t$. The states are defined by a sequence of possible probabilistic events. Markov processes are conditionally independent of the previous values of the process and, as in our case, only consider the current state. Such Markov Models Chains are called **First Order Markov Chains**.
+# <sup>
+#   [[3]](#markov-chain-simplified-ref-anchor)
+# </sup>
+# By definition:
+# $$ p(q_{n}|q_{1}...q_{n-1}) = p(q_{n}|q_{n-1}) $$
+# Markov Chains can be seperated into two types, based on their state space
+# <sup>
+#   [[2]](#markov-chain-ref-anchor)
+# </sup>
+# :
+# - Discrete-time (DTMC): Countable or finite state space. Each step made towards the next state is a discrete measurement.
+# - Continuous-time (CTMC): Uncountable or infinite state space
+
+# %% [markdown]
+# ### <a id="transitions-subtitle-anchor"> Transitions
+# The changes of the state of the system are called *transitions* and the matrix that describes the probabilities associated with each transition is called a **transition matrix**
+# <sup>
+#   [[2]](#markov-chain-ref-anchor)
+# </sup>
+# .
+# In a transition matrix called $A$, each element $a_{ij}$ represents the probability of transitioning from state $i$ to state $j$. Given the *conditional definition*
+# <sup>
+#   [{2}](#cond-prob-def-anchor)
+# </sup>
+# we can construct the transition matrix as follows:
+# <table>
+#   <tr><th>States</th><th>State 1</th><th>State 2</th><th>State n</th></tr>
+#   <tr><th>State 1</th><td>$P(State_{1}|State_{1})$</td><td>$P(State_{1}|State_{2})$</td><td>$P(State_{1}|State_{n})$</td></tr>
+#   <tr><th>State 2</th><td>$P(State_{2}|State_{1})$</td><td>$P(State_{2}|State_{2})$</td><td>$P(State_{2}|State_{n})$</td></tr>
+#   <tr><th>State n</th><td>$P(State_{n}|State_{1})$</td><td>$P(State_{n}|State_{2})$</td><td>$P(State_{n}|State_{n})$</td></tr>
+# </table>
+#
+# The elements of the transition matrix are non-negative and must satisfy the condition that the sum of the probabilities of all transitions out of a state must be equal to one. By definition
+# : $\sum_{j=1}^{n} a_{ij} = 1$
+# <sup>
+#   [[3]](#markov-chain-simplified-ref-anchor)
+# </sup>
+# <br>
+# The Markov process must also be characterized by an *initial staste* (or initial distribution) across the state space.
+
+# %% [markdown]
+# ### <a id="classical-coin-flip-example-subtitle-anchor"> Coin Flip Example
+# Here is a simple example of a coin flip Markov Chain
+# <sup>
+#  [[5]](#coin-flip-example-ref-anchor)
+# </sup>
+# where the coin can only have two states: heads (H) or tails (T). At each step, we flip the (fair, balanced) coin and produce the new state which is **H or T** with equal probability. The probability of each transition should be **$\frac{1}{2}$** and the transition matrix should look like:
+# $$P(H|H) = P(H|T) = P(T|H) = P(T|T) = \frac{1}{2}$$
+# <table>
+#   <tr><th>States</th><th>H</th><th>T</th></tr>
+#   <tr><th>H</th><td>$\frac{1}{2}$</td><td>$\frac{1}{2}$</td></tr>
+#   <tr><th>T</th><td>$\frac{1}{2}$</td><td>$\frac{1}{2}$</td></tr>
+# </table>
+
+# %% {"jupyter": {"source_hidden": true}}
+# Matrix
+classical_coin_flip_matrix = np.array([[0.5, 0.5], [0.5, 0.5]])
+print_log('info', 'classical_coin_flip_matrix =\n', classical_coin_flip_matrix)
+
+# %% {"jupyter": {"source_hidden": true}}
+# Graph
+nodes=['H', 'T']
+edges=[('H', 'H', 0.5), ('H', 'T', 0.5),
+       ('T', 'H', 0.5), ('T', 'T', 0.5)]
+plot_graph(nodes, edges, 'Coin Flip Transition Graph')
+
+# %% [markdown]
+# ## <a id="compute-unitary-matrix-title-anchor"> Compute Unitary Matrix
 
 # %% [markdown]
 # ## General Description
@@ -54,58 +288,6 @@
 # \end{pmatrix}
 # $$
 
-# %% [markdown]
-# # Code
-
-# %% [markdown]
-# ## Imports, colors and helping functions
-
-# %%
-# Imports
-import sys
-from datetime import datetime
-import numpy as np
-from scipy.linalg import sqrtm
-# Graph option 1
-import networkx as nx
-import matplotlib.pyplot as plt
-# Graph option 2
-from graphviz import Digraph
-
-# %%
-# Colors
-RED = '\033[91m'
-BLUE = '\033[94m'
-YELLOW = '\033[93m'
-GREEN = '\033[92m'
-RESET = '\033[0m'
-
-# %%
-# Logging function to print (at least debug) logs
-#   Args:
-#       level: log level [debug, info, error]
-#       rest of args: message
-def print_log(level, *args):
-    # Set debug mode
-    debug = False
-    # debug = True
-
-    # Set timestamp format
-    timestamp = datetime.now().strftime('%m-%d %H:%M:%S')
-
-    # Set colors based on level
-    if level == 'debug': color = YELLOW
-    elif level == 'info': color = BLUE
-    elif level == 'error': color = RED
-    else: print_log('error', 'Invalid log level')
-
-    # Get message
-    message = ' '.join(map(str, args))
-    if (level != 'debug') or (debug and level == 'debug'):
-        print(f'[{timestamp}][{color}{level}{RESET}]\n{message}')
-
-    # Exit if error
-    if level == 'error': sys.exit(1)
 
 # %%
 # Function that calculates norm of a matrix
@@ -411,3 +593,37 @@ print_log('info', "Is Matrix UB Unitary?:\n", validate_unitary(UB))
 # Since UB is unitary, we can now perform calculation to obtain next state
 # $|q_{t+1}⟩ = UB|q_{t}⟩$
 
+# %% [markdown]
+# ## <a id="appendix-title-anchor"> Appendix
+# ### <a id="definitions-subtitle-anchor"> Definitions
+# - <a id="stochastic-model-def-anchor"></a>{1}
+#   *Stochastic Model*
+#   <sup>[[1]](#stochastic-model-ref-anchor)</sup>
+#   :<br>
+#   A mathematical object that consists of a family of random variables in a probability space, all of which are associated with an index set. The index set often has the interpretation of time. Example stochastic models are Markov chains, Bernouli processes, Poisson processes. <br>
+# - <a id="cond-prob-def-anchor"></a>{2}
+#   *Conditional Probability*
+#   <sup>[[4]](#bayes-rule-ref-anchor)</sup>
+#   :<br>
+#   The probability of event *i* occuring given that event *j* has already occured. <br>
+
+# %% [markdown]
+# ## <a id="references-title-anchor"> References
+# - <a id="stochastic-model-ref-anchor"></a>[1]
+#   <a href="https://en.wikipedia.org/wiki/Stochastic_process">
+#   Stochastic Model
+# - <a id="markov-chain-ref-anchor"></a>[2]
+#   <a href="https://en.wikipedia.org/wiki/Markov_chain">
+#   Markov Chain
+# - <a id="markov-chain-simplified-ref-anchor"></a>[3]
+#   <a href="https://www.gaussianwaves.com/2020/03/markov-chains-simplified/">
+#   Markov chains simplified
+# - <a id="bayes-rule-ref-anchor"></a>[4]
+#   <a href="https://en.wikipedia.org/wiki/Bayes%27_theorem">
+#   Bayes' Theorem
+# - <a id="coin-flip-example-ref-anchor"></a>[5]
+#   <a href="https://phys.libretexts.org/Bookshelves/Mathematical_Physics_and_Pedagogy/Computational_Physics_(Chong)/12%3A_Markov_Chains/12.01%3A_The_Simplest_Markov_Chain-_The_Coin-Flipping_Game">
+#   Coin Flipping Game
+
+# %% [markdown]
+# <a href="#header-title-anchor">Back to Top</a>
