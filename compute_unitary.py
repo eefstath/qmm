@@ -42,6 +42,9 @@
 # - [Markov Chains](#markov-chains-title-anchor)
 #   - [Transitions](#transitions-subtitle-anchor)
 #   - [Classical Coin Flip Example](#classical-coin-flip-example-subtitle-anchor)
+# - [Quantum Markov Chains](#quantum-markov-chains-title-anchor)
+#   - [Quantum Transitions](#quantum-transitions-subtitle-anchor)
+#   - [Quantum Coin Flip Example](#quantum-coin-flip-example-subtitle-anchor)
 # - [Compute Unitary Matrix](#compute-unitary-matrix-title-anchor)
 # - [Appendix](#appendix-title-anchor)
 #   - [Definitions](#definitions-subtitle-anchor)
@@ -98,7 +101,7 @@ def print_log(level, *args):
     # Exit if error
     if level == 'error': sys.exit(1)
 
-# %% {"jupyter": {"source_hidden": true}}
+# %%
 # Plot function
 #   Args:
 #       N: matrix with all nodes, example n=('|00⟩', '|01⟩', '|10⟩', '|11⟩')
@@ -237,17 +240,26 @@ def plot_graph(N, E, title):
 #   <tr><th>T</th><td>$\frac{1}{2}$</td><td>$\frac{1}{2}$</td></tr>
 # </table>
 
-# %% {"jupyter": {"source_hidden": true}}
+# %%
 # Matrix
 classical_coin_flip_matrix = np.array([[0.5, 0.5], [0.5, 0.5]])
 print_log('info', 'classical_coin_flip_matrix =\n', classical_coin_flip_matrix)
 
-# %% {"jupyter": {"source_hidden": true}}
+# %%
 # Graph
 nodes=['H', 'T']
 edges=[('H', 'H', 0.5), ('H', 'T', 0.5),
        ('T', 'H', 0.5), ('T', 'T', 0.5)]
 plot_graph(nodes, edges, 'Coin Flip Transition Graph')
+
+# %% [markdown]
+# # <a id="quantum-markov-chain-title-anchor"> Quantum Markov Chain
+
+# %% [markdown]
+# ## <a id="quantum-transitions-subtitle-anchor"> Quantum Transitions
+
+# %% [markdown]
+# ## <a id="quantum-coin-flip-example-subtitle-anchor"> Quantum Coin Flip Example
 
 # %% [markdown]
 # ## <a id="compute-unitary-matrix-title-anchor"> Compute Unitary Matrix
@@ -626,4 +638,4 @@ print_log('info', "Is Matrix UB Unitary?:\n", validate_unitary(UB))
 #   Coin Flipping Game
 
 # %% [markdown]
-# <a href="#header-title-anchor">Back to Top</a>
+# <a href="#header-title-anchor">[▲ Back to Top ▲]</a>
