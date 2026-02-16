@@ -42,6 +42,7 @@
 # - [Markov Chains](#markov-chains-title-anchor)
 #   - [Transitions](#transitions-subtitle-anchor)
 #   - [Classical Coin Flip Example](#classical-coin-flip-example-subtitle-anchor)
+#   - [Classical Code Example](#classical-code-example-subtitle-anchor)
 # - [Quantum Markov Chains](#quantum-markov-chains-title-anchor)
 #   - [Quantum Transitions](#quantum-transitions-subtitle-anchor)
 #   - [Quantum Coin Flip Example](#quantum-coin-flip-example-subtitle-anchor)
@@ -55,6 +56,8 @@
 
 # %% {"jupyter": {"source_hidden": true}}
 # Imports
+# General
+import os
 import sys
 from datetime import datetime
 import numpy as np
@@ -64,14 +67,27 @@ import networkx as nx
 import matplotlib.pyplot as plt
 # Graph option 2
 from graphviz import Digraph
+# Qiskit
+import qiskit
+from qiskit import *
+from qiskit_aer import *
+from qiskit.visualization import plot_distribution
+import qiskit_ibm_runtime
+from qiskit_ibm_runtime import QiskitRuntimeService
 
 # %% {"jupyter": {"source_hidden": true}}
+# Constants
 # Colors
 RED = '\033[91m'
 BLUE = '\033[94m'
 YELLOW = '\033[93m'
 GREEN = '\033[92m'
 RESET = '\033[0m'
+# IBM Connect
+IBM_NAME="ibm_cloud_name"
+IBM_CHANNEL="ibm_cloud"
+IBM_INSTANCE=os.environ.get('IBMQ_INSTANCE')    # Must be set in env
+IBM_TOKEN=os.environ.get('IBMQ_TOKEN')          # Must be set in env
 
 # %% {"jupyter": {"source_hidden": true}}
 # Logging function
@@ -81,27 +97,30 @@ RESET = '\033[0m'
 #       rest of args: message
 def print_log(level, *args):
     # Set debug mode
-    debug = False
-    # debug = True
+    # debug = False
+    debug = True
 
     # Set timestamp format
     timestamp = datetime.now().strftime('%m-%d %H:%M:%S')
 
+    # Set log level to uppercase
+    level_upper = level.upper()
+
     # Set colors based on level
-    if level == 'debug': color = YELLOW
-    elif level == 'info': color = BLUE
-    elif level == 'error': color = RED
-    else: print_log('error', 'Invalid log level')
+    if level_upper == 'DEBUG': color = YELLOW
+    elif level_upper == 'INFO': color = BLUE
+    elif level_upper == 'ERROR': color = RED
+    else: print_log('ERROR', 'Invalid log level')
 
     # Get message
     message = ' '.join(map(str, args))
     if (level != 'debug') or (debug and level == 'debug'):
-        print(f'[{timestamp}][{color}{level}{RESET}]\n{message}')
+        print(f'[{timestamp}][{color}{level_upper}{RESET}]\n{message}')
 
     # Exit if error
     if level == 'error': sys.exit(1)
 
-# %%
+# %% {"jupyter": {"source_hidden": true}}
 # Plot function
 #   Args:
 #       N: matrix with all nodes, example n=('|00⟩', '|01⟩', '|10⟩', '|11⟩')
@@ -119,8 +138,10 @@ def plot_graph(N, E, title):
 
     G = nx.DiGraph()            # Create graph
     G.add_nodes_from(N)         # Add nodes
-    pos = nx.planar_layout(G)   # Layout
 
+    # pos = nx.planar_layout(G)   # Planar Layout
+    # pos = nx.shell_layout(G)    # Shell Layout
+    pos = nx.spring_layout(G)   # Spring Layout
 
     # Manipulate edges
     ext_edges=[]
@@ -171,7 +192,160 @@ def plot_graph(N, E, title):
     # Show plot
     plt.title(title)
     plt.show()
-    print_log('debug', ">>> Finished function: plot_graph")
+
+# %% {"jupyter": {"source_hidden": true}}
+# Matrix Norm Function
+#   Args:
+#       A: Matrix
+#   Returns norm of matrix A
+def calc_norm(A):
+    print_log('debug', ">>> Starting function: calc_norm")
+    print_log('debug', ">>> Matrix input:\n", A)
+
+    # Get conjugate of A
+    A_conjugate = np.conjugate(A)
+    print_log('debug', ">>> Matrix input, conjugate:\n", A_conjugate)
+
+    # Get transpose of A conjugate
+    A_dagger = np.transpose(A_conjugate)
+    print_log('debug', ">>> Matrix input, transpose conjugate:\n", A_dagger)
+
+    # Product of A_dagger and A
+    P = np.dot(A_dagger, A)
+    print_log('debug', ">>> Matrix input dagger @ matrix input = P:\n", P)
+
+    # Get eigenvalues of P
+    eigenvalues = np.linalg.eigvals(P)
+    print_log('debug', ">>> Eigenvalues of matrix P:\n", eigenvalues)
+
+    # Get max eigenvalue
+    max_eigenvalue = np.max(eigenvalues)
+    print_log('debug', ">>> Max eigenvalue of matrix P:\n", max_eigenvalue)
+
+    # Get square root of max eigenvalue aka norm of matrix input
+    norm_A = np.sqrt(max_eigenvalue)
+
+    return norm_A
+
+# %% {"jupyter": {"source_hidden": true}}
+# Unitary Matrix Function
+#   Calculates a unitary matrix that contains a NON unitary matrix A
+#   in its top left corner
+#   Args:
+#       A: Non unitary matrix
+#   Returns unitary matrix U
+def calc_unitary(A):
+    print_log('debug', ">>> Starting function: calc_unitary")
+    print_log('debug', ">>> Matrix input:\n", A)
+
+    # Calculate norm of input matrix A
+    norm_A = calc_norm(A)
+    print_log('debug', ">>> Norm of matrix input:\n", norm_A)
+
+    # Get number of rows/columns of A (I guess they are equal)
+    n = A.shape[0]
+    print_log('debug', ">>> Number of rows/columns of matrix input:\n", n)
+
+    # Check if norm is lower or equal to 1
+    if norm_A <= 1:
+        # Top left corner will contain A
+        top_left = A
+    # Check if norm is greater than 1
+    else:
+        # Top left corner will contain C, which is A/norm_A
+        top_left = A/norm_A
+
+    # Calculate X_dagger@X and X@X_dagger (needed later on)
+    # Where X is top left corner
+    top_left_dagger = np.transpose(np.conjugate(top_left))
+    top_left_x_top_left_dagger = np.dot(top_left, top_left_dagger)
+    top_left_dagger_x_top_left = np.dot(top_left_dagger, top_left)
+    print_log('debug', ">>> Matrix top left:\n", top_left)
+
+    # Bottom left
+    bottom_left = sqrtm(np.identity(n) - top_left_dagger_x_top_left)
+    print_log('debug', ">>> Matrix left right:\n", bottom_left)
+
+    # Top right
+    top_right = sqrtm(np.identity(n) - top_left_x_top_left_dagger)
+    print_log('debug', ">>> Matrix top right:\n", top_right)
+
+    # Bottom right
+    bottom_right = -top_left_dagger
+    print_log('debug', ">>> Matrix bottom right:\n", bottom_right)
+
+    # Unitary matrix U
+    U = np.block([
+        [top_left, top_right],
+        [bottom_left, bottom_right]
+        ])
+
+    return U
+
+# %% {"jupyter": {"source_hidden": true}}
+# Validate Unitary Function
+#   Args:
+#        U: Unitary matrix
+#   Returns True or False based on if U is unitary
+def validate_unitary(U):
+    is_unitary = False
+
+    print_log('debug', ">>> Starting function: validate_unitary")
+    print_log('debug', ">>> Matrix input:\n", U)
+
+    # Get number of rows/columns of U (I guess they are equal)
+    n = U.shape[0]
+    print_log('debug', ">>> Number of rows/columns of matrix input:\n", n)
+
+    # Check if U is unitary by computing U@U_dagger
+    U_dagger = np.transpose(np.conjugate(U))
+    U_dagger_x_U = np.dot(U_dagger, U)
+    print_log('debug', ">>> Matrix input dagger @ matrix input:\n", U_dagger_x_U)
+
+    # Check if U_dagger_x_U is identity matrix
+    if np.allclose(U_dagger_x_U, np.identity(n)):
+        print_log('debug', ">>> U is unitary")
+        is_unitary = True
+
+    return is_unitary
+
+# %% {"jupyter": {"source_hidden": true}}
+# IBM Connect Function
+#   Makes initial connection to IBM Cloud Server for Qiskit
+#   Returns service of the connection
+def connect_ibm():
+    print_log('debug', ">>> Starting function: connect_ibm")
+
+    # Verify Qiskit availability
+    if not qiskit.__version__:
+        print_log('error', "Qiskit not set properly")
+    print_log('debug', ">>> Qiskit Version: ", qiskit.__version__)
+
+    # Verify IBM Qiskit token/instance existence
+    if not IBM_TOKEN:
+        print_log('error', "Environment variable IBMQ_TOKEN not set, create it...")
+
+    if not IBM_INSTANCE:
+        print_log('error', "Environment variable IBMQ_INSTANCE not set, create it...")
+    print_log('debug', ">>> Instance connected to IBM Cloud:", account.get("instance"))
+
+    # Save account
+    QiskitRuntimeService.save_account(
+        name=IBM_NAME,
+        channel=IBM_CHANNEL,
+        instance=IBM_INSTANCE,
+        token=IBM_TOKEN,
+        overwrite=True, set_as_default=True)
+
+    # Load account
+    service = QiskitRuntimeService(name=IBM_NAME)
+
+    # Verify account connection
+    account=service.active_account()
+    print_log('info', "Channel connected to IBM Cloud:", account.get("channel"))
+    print_log('debug', ">>> List of available backends:", service.backends())
+
+    return service
 
 # %% [markdown]
 # ## <a id="markov-chains-title-anchor"> Markov Chains
@@ -252,8 +426,40 @@ edges=[('H', 'H', 0.5), ('H', 'T', 0.5),
        ('T', 'H', 0.5), ('T', 'T', 0.5)]
 plot_graph(nodes, edges, 'Coin Flip Transition Graph')
 
+
 # %% [markdown]
-# # <a id="quantum-markov-chain-title-anchor"> Quantum Markov Chain
+# ### <a id="classical-code-example-subtitle-anchor"> Classical Code Example
+# Slides example of some transitions that consists of 4 states. The transition matrix should look like:
+# $$P(A|B) = P(A|C) = P(D|B) = P(D|C) = \frac{1}{2}$$
+# $$P(B|A) = P(B|B) = P(B|C) = P(B|D) = P(C|A) = P(C|B) = 0$$
+# $$P(B|C) = P(C|A) = 1$$
+# <table>
+#   <tr><th>States</th><th>A</th><th>B</th><th>C</th><th>D</th></tr>
+#   <tr><th>A</th><td>$0$</td><td>$\frac{1}{2}$</td><td>$\frac{1}{2}$</td><td>$0$</td></tr>
+#   <tr><th>B</th><td>$0$</td><td>$0$</td><td>$1$</td><td>$0$</td></tr>
+#   <tr><th>C</th><td>$1$</td><td>$0$</td><td>$0$</td><td>$0$</td></tr>
+#   <tr><th>D</th><td>$\frac{1}{2}$</td><td>$\frac{1}{2}$</td><td>$0$</td><td>$0$</td></tr>
+# </table>
+
+# %%
+# Matrix
+classical_code_matrix = np.array([[0, 0.5, 0.5, 0],
+                                  [0, 0, 1, 0],
+                                  [1, 0, 0, 0],
+                                  [0.5, 0.5, 0, 0]])
+print_log('info', 'classical_code_matrix =\n', classical_code_matrix)
+
+# %%
+# Graph
+nodes=['A', 'B', 'C', 'D']
+edges=[('A', 'B', 0.5), ('A', 'C', 0.5),
+       ('B', 'C', 1),
+       ('C', 'D', 1),
+       ('D', 'A', 0.5), ('D', 'B', 0.5)]
+plot_graph(nodes, edges, 'Code Transition Graph')
+
+# %% [markdown]
+# # <a id="quantum-markov-chains-title-anchor"> Quantum Markov Chain
 
 # %% [markdown]
 # ## <a id="quantum-transitions-subtitle-anchor"> Quantum Transitions
@@ -299,122 +505,8 @@ plot_graph(nodes, edges, 'Coin Flip Transition Graph')
 # \sqrt{I - TopLeft TopLeft^{\dagger}} & - TopLeft^{\dagger}
 # \end{pmatrix}
 # $$
-
-
-# %%
-# Function that calculates norm of a matrix
-#   Args:
-#       A: Matrix
-#   Returns norm of matrix A
-def calc_norm(A):
-    print_log('debug', ">>> Starting function: calc_norm")
-    print_log('debug', ">>> Matrix input:\n", A)
-
-    # Get conjugate of A
-    A_conjugate = np.conjugate(A)
-    print_log('debug', ">>> Matrix input, conjugate:\n", A_conjugate)
-
-    # Get transpose of A conjugate
-    A_dagger = np.transpose(A_conjugate)
-    print_log('debug', ">>> Matrix input, transpose conjugate:\n", A_dagger)
-
-    # Product of A_dagger and A
-    P = np.dot(A_dagger, A)
-    print_log('debug', ">>> Matrix input dagger @ matrix input = P:\n", P)
-
-    # Get eigenvalues of P
-    eigenvalues = np.linalg.eigvals(P)
-    print_log('debug', ">>> Eigenvalues of matrix P:\n", eigenvalues)
-
-    # Get max eigenvalue
-    max_eigenvalue = np.max(eigenvalues)
-    print_log('debug', ">>> Max eigenvalue of matrix P:\n", max_eigenvalue)
-
-    # Get square root of max eigenvalue aka norm of matrix input
-    norm_A = np.sqrt(max_eigenvalue)
-
-    return norm_A
-
-# %%
-# Function that calculates a unitary matrix that contains a NON unitary matrix A
-#   in its top left corner
-#   Args:
-#       A: Non unitary matrix
-#   Returns unitary matrix U
-def calc_unitary(A):
-    print_log('debug', ">>> Starting function: calc_unitary")
-    print_log('debug', ">>> Matrix input:\n", A)
-
-    # Calculate norm of input matrix A
-    norm_A = calc_norm(A)
-    print_log('debug', ">>> Norm of matrix input:\n", norm_A)
-
-    # Get number of rows/columns of A (I guess they are equal)
-    n = A.shape[0]
-    print_log('debug', ">>> Number of rows/columns of matrix input:\n", n)
-
-    # Check if norm is lower or equal to 1
-    if norm_A <= 1:
-        # Top left corner will contain A
-        top_left = A
-    # Check if norm is greater than 1
-    else:
-        # Top left corner will contain C, which is A/norm_A
-        top_left = A/norm_A
-
-    # Calculate X_dagger@X and X@X_dagger (needed later on)
-    # Where X is top left corner
-    top_left_dagger = np.transpose(np.conjugate(top_left))
-    top_left_x_top_left_dagger = np.dot(top_left, top_left_dagger)
-    top_left_dagger_x_top_left = np.dot(top_left_dagger, top_left)
-    print_log('debug', ">>> Matrix top left:\n", top_left)
-
-    # Bottom left
-    bottom_left = sqrtm(np.identity(n) - top_left_dagger_x_top_left)
-    print_log('debug', ">>> Matrix left right:\n", bottom_left)
-
-    # Top right
-    top_right = sqrtm(np.identity(n) - top_left_x_top_left_dagger)
-    print_log('debug', ">>> Matrix top right:\n", top_right)
-
-    # Bottom right
-    bottom_right = -top_left_dagger
-    print_log('debug', ">>> Matrix bottom right:\n", bottom_right)
-
-    # Unitary matrix U
-    U = np.block([
-        [top_left, top_right],
-        [bottom_left, bottom_right]
-        ])
-
-    return U
-
-# %%
-# Validate Unitary
-#   Args:
-#        U: Unitary matrix
-#   Returns True or False based on if U is unitary
-def validate_unitary(U):
-    is_unitary = False
-
-    print_log('debug', ">>> Starting function: validate_unitary")
-    print_log('debug', ">>> Matrix input:\n", U)
-
-    # Get number of rows/columns of U (I guess they are equal)
-    n = U.shape[0]
-    print_log('debug', ">>> Number of rows/columns of matrix input:\n", n)
-
-    # Check if U is unitary by computing U@U_dagger
-    U_dagger = np.transpose(np.conjugate(U))
-    U_dagger_x_U = np.dot(U_dagger, U)
-    print_log('debug', ">>> Matrix input dagger @ matrix input:\n", U_dagger_x_U)
-
-    # Check if U_dagger_x_U is identity matrix
-    if np.allclose(U_dagger_x_U, np.identity(n)):
-        print_log('debug', ">>> U is unitary")
-        is_unitary = True
-
-    return is_unitary
+#
+#
 
 # %% [markdown]
 # ## Code Example 1
