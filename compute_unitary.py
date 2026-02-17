@@ -45,8 +45,9 @@
 #   - [Classical Code Example](#classical-code-example-subtitle-anchor)
 # - [Quantum Markov Chains](#quantum-markov-chains-title-anchor)
 #   - [Quantum Transitions](#quantum-transitions-subtitle-anchor)
+#   - [Compute Unitary Matrix](#compute-unitary-matrix-subtitle-anchor)
 #   - [Quantum Coin Flip Example](#quantum-coin-flip-example-subtitle-anchor)
-# - [Compute Unitary Matrix](#compute-unitary-matrix-title-anchor)
+#   - [Quantum Code Example](#quantum-code-example-subtitle-anchor)
 # - [Appendix](#appendix-title-anchor)
 #   - [Definitions](#definitions-subtitle-anchor)
 # - [References](#references-title-anchor)
@@ -82,6 +83,7 @@ RED = '\033[91m'
 BLUE = '\033[94m'
 YELLOW = '\033[93m'
 GREEN = '\033[92m'
+PURPLE = '\033[95m'
 RESET = '\033[0m'
 # IBM Connect
 IBM_NAME="ibm_cloud_name"
@@ -98,7 +100,7 @@ IBM_TOKEN=os.environ.get('IBMQ_TOKEN')          # Must be set in env
 def print_log(level, *args):
     # Set debug mode
     # debug = False
-    debug = True
+    debug = False
 
     # Set timestamp format
     timestamp = datetime.now().strftime('%m-%d %H:%M:%S')
@@ -107,7 +109,8 @@ def print_log(level, *args):
     level_upper = level.upper()
 
     # Set colors based on level
-    if level_upper == 'DEBUG': color = YELLOW
+    if level_upper == 'DEBUG': color = PURPLE
+    elif level_upper == 'WARN': color = YELLOW
     elif level_upper == 'INFO': color = BLUE
     elif level_upper == 'ERROR': color = RED
     else: print_log('ERROR', 'Invalid log level')
@@ -166,7 +169,7 @@ def plot_graph(N, E, title):
             edgelist=ext_edges,
             edge_color='gray',
             arrows=True,
-            connectionstyle='arc3, rad=0.2',
+            connectionstyle='arc3, rad=0',
         )
 
     # Draw internal edges
@@ -224,6 +227,11 @@ def calc_norm(A):
 
     # Get square root of max eigenvalue aka norm of matrix input
     norm_A = np.sqrt(max_eigenvalue)
+
+    # Check if norm is higher than 1
+    if norm_A > 1:
+        print_log('warn',
+        "Norm of matrix input is higher than 1, so the resulting unitary matrix U contains C = A/norm(A) in its top left corner (not A)")
 
     return norm_A
 
@@ -426,6 +434,8 @@ edges=[('H', 'H', 0.5), ('H', 'T', 0.5),
        ('T', 'H', 0.5), ('T', 'T', 0.5)]
 plot_graph(nodes, edges, 'Coin Flip Transition Graph')
 
+# %% [markdown]
+# <a href="#quantum-coin-flip-example-subtitle-anchor">[▼ Jump to Quantum Coin Flip Example ▼]</a>
 
 # %% [markdown]
 # ### <a id="classical-code-example-subtitle-anchor"> Classical Code Example
@@ -459,27 +469,19 @@ edges=[('A', 'B', 0.5), ('A', 'C', 0.5),
 plot_graph(nodes, edges, 'Code Transition Graph')
 
 # %% [markdown]
+# <a href="#quantum-code-example-subtitle-anchor">[▼ Jump to Quantum Code Example ▼]</a>
+
+# %% [markdown]
 # # <a id="quantum-markov-chains-title-anchor"> Quantum Markov Chain
+# [Add something here]
 
 # %% [markdown]
 # ## <a id="quantum-transitions-subtitle-anchor"> Quantum Transitions
+# [Add something here]... Since the transition matrix is not unitary in some (most?) cases, we must
+# compute the unitary matrix using the operator norm.
 
 # %% [markdown]
-# ## <a id="quantum-coin-flip-example-subtitle-anchor"> Quantum Coin Flip Example
-
-# %% [markdown]
-# ## <a id="compute-unitary-matrix-title-anchor"> Compute Unitary Matrix
-
-# %% [markdown]
-# ## General Description
-#
-# This is a python programm that takes a matrix and makes it unitary based on its norm.
-#
-# Matrix is **NOT** given as input, rather than it is defined here
-
-# %% [markdown]
-# ## Instructions
-#
+# ### <a id="compute-unitary-matrix-subtitle-anchor"> Compute Unitary Matrix
 # The operator norm, or spectral norm is the largest singular value of A.
 #
 # Singular values are the square roots of the eigenvalues of $A^{\dagger}A$
@@ -509,132 +511,15 @@ plot_graph(nodes, edges, 'Code Transition Graph')
 #
 
 # %% [markdown]
-# ## Code Example 1
-#
-# Non Unitary Matrix example
-#
-# $$ A =
-# \begin{pmatrix}
-# 2-\sqrt{2} & 0 & 0 & 0 \\\\
-# 0 & 2\sqrt{2} & 0 & 0 \\\\
-# 0 & 0 & \sqrt{2} & 0 \\\\
-# 0 & 0 & 0 & 2
-# \end{pmatrix}
-# $$
-
-# %%
-# Define A example
-A = np.array([[2-np.sqrt(2), 0, 0, 0],
-              [0, 2*np.sqrt(2), 0, 0],
-              [0, 0, 2*np.sqrt(2), 0],
-              [0, 0, 0, 2]])
-print_log('info', "Matrix A:\n", A)
-
-
-# %%
-# Calculate norm of A for a non unitary matrix
-normA = calc_norm(A)
-print_log('info', "Norm of matrix A:\n", normA)
-
-# %%
-# Calculate unitary matrix for a non unitary matrix
-U = calc_unitary(A)
-print_log('info', "Unitary matrix U, calculated from not-unitary matrix A:\n", U)
+# ### <a id="quantum-coin-flip-example-subtitle-anchor"> Quantum Coin Flip Example
+# [Add coin flip example here]...
 
 # %% [markdown]
-# ### **Warning**
-# Since the norm of matrix A is higher than one, the resulting unitary matrix U contains
-# $C = A/norm(A)$ in its top left corner (not A)
-
-# %%
-# Top left corner should contain:
-print_log('info', "Matrix A/norm(A) = C:\n", A/normA)
-
-# %%
-# Validate Unitary
-is_unitary = validate_unitary(U)
-print_log('info', "Is U unitary?:\n", is_unitary)
-
-# %% [markdown]
-# ## Code Example 2 (Pennylane)
+# ### <a id="quantum-code-example-subtitle-anchor"> Quantum Code Example
+# Extract the matrix out of the possible transitions presented in the graph of the classical code example
+# in the [▲ Classical Code Example ▲](#classical-code-example-subtitle-anchor).
 #
-# https://pennylane.ai/qml/demos/tutorial_intro_qsvt
-#
-# Non Unitary Matrix example
-#
-# $$ B =
-# \begin{pmatrix}
-# 0.1 & 0.2 \\\\
-# 0.3 & 0.4
-# \end{pmatrix}
-# $$
-
-# %%
-# Oneliners example for B:
-B = np.array([[0.1, 0.2],
-              [0.3, 0.4]])
-print_log('info', "Matrix B:\n", B)
-print_log('info', "Unitary U that contains B in top left corner:\n", calc_unitary(B))
-print_log('info', "Is U unitary ?:\n", validate_unitary(calc_unitary(np.array([[0.1, 0.2],
-                                                                               [0.3, 0.4]]))))
-
-# %% [markdown]
-# # Markov Models
-#
-# Create a Markov Model with a non-unitary matrix N, then create a unitary matrix U that contains N in its top left corner.
-
-# %% [markdown]
-# ## Graph transitions, Slides example [Matplotlib and Networkx]
-
-# %%
-# Slides example
-G = nx.DiGraph()
-edges = [
-        ('|00⟩', '|01⟩'),
-        ('|00⟩', '|10⟩'),
-        ('|01⟩', '|11⟩'),
-        ('|10⟩', '|00⟩'),
-        ('|11⟩', '|00⟩'),
-        ('|11⟩', '|01⟩')
-]
-G.add_edges_from(edges)
-
-pos = {
-    '|00⟩': (-1, 1),
-    '|01⟩': (1, 1),
-    '|10⟩': (-1, -1),
-    '|11⟩': (1, -1)
-}
-nx.draw(G, pos, with_labels=True,
-        node_size=2000, arrows=True)
-plt.show()
-
-# %% {"jupyter": {"source_hidden": true}}
-# ## Graph transitions, Slides example [Graphviz]
-# g = Digraph('States', format='png', engine='dot')
-#
-# # Node style
-# g.attr('node', shape='circle')
-#
-# # Nodes
-# g.node('00', '|00⟩')
-# g.node('01', '|01⟩')
-# g.node('10', '|10⟩')
-# g.node('11', '|11⟩')
-#
-# # Edges
-# g.edge('00', '01')
-# g.edge('00', '11')
-# g.edge('01', '11')
-# g.edge('10', '00')
-# g.edge('11', '00')
-# g.edge('11', '01')
-# g
-
-# %% [markdown]
-# ## Matrix transitions, Slides example
-#
-# Extract the matrix out of the possible transitions presented in the graph.
+# Node matching 'A': |00⟩, 'B': |01⟩, 'C': |10⟩, 'D': |11⟩
 #
 # Node |00⟩ has two equally possible options: |01⟩ and |10⟩, so transitions equal:
 #
@@ -671,32 +556,67 @@ plt.show()
 # \frac{1}{2} \\\\
 # \frac{1}{2} \\\\
 # \end{pmatrix}$$
+#
+#
+# $$ A =
+# \begin{pmatrix}
+# 2-\sqrt{2} & 0 & 0 & 0 \\\\
+# 0 & 2\sqrt{2} & 0 & 0 \\\\
+# 0 & 0 & \sqrt{2} & 0 \\\\
+# 0 & 0 & 0 & 2
+# \end{pmatrix}
+# $$
 
 # %%
-# Matrix representation, Slides example
-# Define Matrix B slides example
-B = np.array([
-    [ 2*(np.sqrt(2)-1)/np.sqrt(2),  0,              0,              0],
-    [ 0,                            4/np.sqrt(2),   0,              0],
-    [ 0,                            0,              2*np.sqrt(2),   0],
-    [ 0,                            0,              0,              2]
-])
-print_log('info', "Matrix B:\n", B)
+# Define A example
+A = np.array([[2-np.sqrt(2), 0, 0, 0],
+              [0, 2*np.sqrt(2), 0, 0],
+              [0, 0, 2*np.sqrt(2), 0],
+              [0, 0, 0, 2]])
+print_log('info', "Matrix A:\n", A)
+
 
 # %%
-# Is matrix B unitary? Lets validate:
-validate_unitary(B)
+# Calculate norm of A for a non unitary matrix
+normA = calc_norm(A)
+print_log('info', "Norm of matrix A:\n", normA)
 
 # %%
-# Since B is not Unitary, lets calculate a unitary matrix that contains B in its top left corner
-UB = calc_unitary(B)
-print_log('info', "Matrix UB:\n", UB)
-print_log('info', "Is Matrix UB Unitary?:\n", validate_unitary(UB))
+# Calculate unitary matrix for a non unitary matrix
+U = calc_unitary(A)
+print_log('info', "Unitary matrix U, calculated from not-unitary matrix A:\n", U)
+
+# %%
+# Top left corner should contain:
+print_log('info', "Matrix A/norm(A) = C:\n", A/normA)
+
+# %%
+# Validate Unitary
+is_unitary = validate_unitary(U)
+print_log('info', "Is U unitary?:\n", is_unitary)
 
 # %% [markdown]
-# Since UB is unitary, we can now perform calculation to obtain next state
-# $|q_{t+1}⟩ = UB|q_{t}⟩$
+# ### Code Example 2 (Pennylane)
+#
+# [Source](https://pennylane.ai/qml/demos/tutorial_intro_qsvt)
+#
+# Non Unitary Matrix example
+#
+# $$ B =
+# \begin{pmatrix}
+# 0.1 & 0.2 \\\\
+# 0.3 & 0.4
+# \end{pmatrix}
+# $$
 
+# %%
+# Oneliners example for B:
+B = np.array([[0.1, 0.2],
+              [0.3, 0.4]])
+print_log('info', "Matrix B:\n", B)
+print_log('info', "Unitary U that contains B in top left corner:\n", calc_unitary(B))
+print_log('info', "Is U unitary ?:\n", validate_unitary(calc_unitary(np.array([[0.1, 0.2],
+                                                                               [0.3, 0.4]]))))
 # %% [markdown]
 # ## <a id="appendix-title-anchor"> Appendix
 # ### <a id="definitions-subtitle-anchor"> Definitions
