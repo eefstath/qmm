@@ -19,13 +19,13 @@
 # # <a id="header-title-anchor"> Quantum Markov models
 # **Date**: 2023-01-25 <br>
 # **Author**: Emmanouil Efstathiou <br>
-# **Email**: manolis_ef@hotmail.com <br>
+# **Email**:  <br>
 #
 # ---
 #
 # **MSc**: Quantum Computing and Quantum Technologies <br>
 # **University**: Demokritus University of Thrace <br>
-# **Supervisor**: Ioannis Karafillidis <br>
+# **Supervisor**:  <br>
 
 # %% [markdown]
 # <div style="background-color: #E0E0E0;
