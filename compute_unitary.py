@@ -43,11 +43,14 @@
 #   - [Transitions](#transitions-subtitle-anchor)
 #   - [Classical Coin Flip Example](#classical-coin-flip-example-subtitle-anchor)
 #   - [Classical Code Example](#classical-code-example-subtitle-anchor)
+#   - [Classical GaussianWaves Example](#classical-gaussianwaves-example-subtitle-anchor)
 # - [Quantum Markov Chains](#quantum-markov-chains-title-anchor)
 #   - [Quantum Transitions](#quantum-transitions-subtitle-anchor)
 #   - [Compute Unitary Matrix](#compute-unitary-matrix-subtitle-anchor)
 #   - [Quantum Coin Flip Example](#quantum-coin-flip-example-subtitle-anchor)
 #   - [Quantum Code Example](#quantum-code-example-subtitle-anchor)
+#   - [Quantum GaussianWaves Example](#quantum-gaussianwaves-example-subtitle-anchor)
+#   - [Quantum Pennylane Example](#quantum-pennylane-example-subtitle-anchor)
 # - [Appendix](#appendix-title-anchor)
 #   - [Definitions](#definitions-subtitle-anchor)
 # - [References](#references-title-anchor)
@@ -169,7 +172,7 @@ def plot_graph(N, E, title):
             edgelist=ext_edges,
             edge_color='gray',
             arrows=True,
-            connectionstyle='arc3, rad=0',
+            connectionstyle='arc3, rad=0.1',
         )
 
     # Draw internal edges
@@ -472,6 +475,39 @@ plot_graph(nodes, edges, 'Code Transition Graph')
 # <a href="#quantum-code-example-subtitle-anchor">[▼ Jump to Quantum Code Example ▼]</a>
 
 # %% [markdown]
+# ### <a id="classical-gaussianwaves-example-subtitle-anchor"> Classical GaussianWaves Example
+# Taken from a probabilistic model
+# <sup>[[3]](#markov-chain-simplified-ref-anchor)</sup>
+#  ,this is the transition matrix that showcases the changes of states with their probabilities
+# <table>
+#   <tr><th>States</th><th>Accelerate</th><th>Constant Speed</th><th>Idling</th><th>Brake</th></tr>
+#   <tr><th>Accelerate</th><td>$0.3$</td><td>$0.2$</td><td>$0$</td><td>$0.5$</td></tr>
+#   <tr><th>Constant Speed</th><td>$0.1$</td><td>$0.4$</td><td>$0$</td><td>$0.5$</td></tr>
+#   <tr><th>Idling</th><td>$0.8$</td><td>$0$</td><td>$0.2$</td><td>$0$</td></tr>
+#   <tr><th>Brake</th><td>$0.4$</td><td>$0.05$</td><td>$0.5$</td><td>$0.05$</td></tr>
+# </table>
+
+# %%
+# Matrix
+classical_gaussianwaves_matrix = np.array([[0.3, 0.2, 0, 0.5],
+                                           [0.1, 0.4, 0, 0.5],
+                                           [0.8, 0, 0.2, 0],
+                                           [0.4, 0.05, 0.5, 0.05]])
+print_log('info', 'classical_gaussianwaves_matrix =\n', classical_gaussianwaves_matrix)
+
+# %%
+# Graph
+nodes=['Accelerate', 'Constant Speed', 'Idling', 'Brake']
+edges=[('Accelerate', 'Accelerate', 0.3), ('Accelerate', 'Constant Speed', 0.2), ('Accelerate', 'Brake', 0.5),
+       ('Constant Speed', 'Accelerate', 0.1), ('Constant Speed', 'Constant Speed', 0.4), ('Constant Speed', 'Brake', 0.5),
+       ('Idling', 'Accelerate', 0.8), ('Idling', 'Idling', 0.2),
+       ('Brake', 'Accelerate', 0.4), ('Brake', 'Constant Speed', 0.05), ('Brake', 'Idling', 0.5), ('Brake', 'Brake', 0.05)]
+plot_graph(nodes, edges, 'GaussianWaves Transition Graph')
+
+# %% [markdown]
+# <a href="#quantum-gaussianwaves-example-subtitle-anchor">[▼ Jump to Quantum GaussianWaves Example ▼]</a>
+
+# %% [markdown]
 # # <a id="quantum-markov-chains-title-anchor"> Quantum Markov Chain
 # [Add something here]
 
@@ -596,11 +632,36 @@ is_unitary = validate_unitary(U)
 print_log('info', "Is U unitary?:\n", is_unitary)
 
 # %% [markdown]
-# ### Code Example 2 (Pennylane)
-#
-# [Source](https://pennylane.ai/qml/demos/tutorial_intro_qsvt)
+# ### <a id="quantum-gaussianwaves-example-subtitle-anchor"> Quantum GaussianWaves Example
+# Classical transition matrix created in the [▲ Classical GaussianWaves Example ▲](#classical-gaussianwaves-example-subtitle-anchor).
+
+# %%
+# Gaussian Waves Matrix
+print_log('info', "GaussianWaves Matrix:\n", classical_gaussianwaves_matrix)
+print_log('info', "Is GaussianWaves Matrix unitary?:\n", validate_unitary(classical_gaussianwaves_matrix))
+
+# %%
+# Norm
+gaussian_waves_norm = calc_norm(classical_gaussianwaves_matrix)
+print_log('info', "Norm of GaussianWaves Matrix:\n", gaussian_waves_norm)
+
+# %%
+# Make unitary and only keep real part
+gaussian_waves_unitary = calc_unitary(classical_gaussianwaves_matrix)
+real_gaussian_waves_unitary = gaussian_waves_unitary.real
+print_log('info', "Unitary matrix that contains GaussianWaves Matrix in top left corner:\n", real_gaussian_waves_unitary)
+print_log('info', "Is U unitary ?:\n", validate_unitary(real_gaussian_waves_unitary))
+
+# %%
+# Confirm top left corner (4x4)
+print_log('info', "New unitary matrix top left corner:\n", real_gaussian_waves_unitary[0:4, 0:4])
+print_log('info', "Top left corner since norm > 1:\n", classical_gaussianwaves_matrix/gaussian_waves_norm)
+
+# %% [markdown]
+# ### <a id="quantum-pennylane-example-subtitle-anchor"> Quantum Pennylane Example
 #
 # Non Unitary Matrix example
+# <sup>[[6]](#pennylane-example-ref-anchor)</sup>
 #
 # $$ B =
 # \begin{pmatrix}
@@ -614,9 +675,10 @@ print_log('info', "Is U unitary?:\n", is_unitary)
 B = np.array([[0.1, 0.2],
               [0.3, 0.4]])
 print_log('info', "Matrix B:\n", B)
-print_log('info', "Unitary U that contains B in top left corner:\n", calc_unitary(B))
-print_log('info', "Is U unitary ?:\n", validate_unitary(calc_unitary(np.array([[0.1, 0.2],
-                                                                               [0.3, 0.4]]))))
+pennylane_unitary = calc_unitary(B)
+print_log('info', "Unitary U that contains B in top left corner:\n", pennylane_unitary)
+print_log('info', "Is U unitary ?:\n", validate_unitary(calc_unitary(pennylane_unitary)))
+
 # %% [markdown]
 # ## <a id="appendix-title-anchor"> Appendix
 # ### <a id="definitions-subtitle-anchor"> Definitions
@@ -648,6 +710,9 @@ print_log('info', "Is U unitary ?:\n", validate_unitary(calc_unitary(np.array([[
 # - <a id="coin-flip-example-ref-anchor"></a>[5]
 #   <a href="https://phys.libretexts.org/Bookshelves/Mathematical_Physics_and_Pedagogy/Computational_Physics_(Chong)/12%3A_Markov_Chains/12.01%3A_The_Simplest_Markov_Chain-_The_Coin-Flipping_Game">
 #   Coin Flipping Game
+# - <a id="pennylane-example-ref-anchor"></a>[6]
+#   <a href="https://pennylane.ai/qml/demos/tutorial_intro_qsvt">
+#   Pennylane Example
 
 # %% [markdown]
 # <a href="#header-title-anchor">[▲ Back to Top ▲]</a>
