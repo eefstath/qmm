@@ -102,8 +102,8 @@ IBM_TOKEN=os.environ.get('IBMQ_TOKEN')          # Must be set in env
 #       rest of args: message
 def print_log(level, *args):
     # Set debug mode
+    debug = True
     # debug = False
-    debug = False
 
     # Set timestamp format
     timestamp = datetime.now().strftime('%m-%d %H:%M:%S')
@@ -245,13 +245,14 @@ def calc_norm(A):
 #   Args:
 #       A: Non unitary matrix
 #   Returns unitary matrix U
-def calc_unitary(A):
+def calc_unitary(A, norm_A):
     print_log('debug', ">>> Starting function: calc_unitary")
     print_log('debug', ">>> Matrix input:\n", A)
+    print_log('debug', ">>> Norm of matrix input:\n", norm_A)
 
     # Calculate norm of input matrix A
-    norm_A = calc_norm(A)
-    print_log('debug', ">>> Norm of matrix input:\n", norm_A)
+    # norm_A = calc_norm(A)
+    # print_log('debug', ">>> Norm of matrix input:\n", norm_A)
 
     # Get number of rows/columns of A (I guess they are equal)
     n = A.shape[0]
@@ -291,12 +292,57 @@ def calc_unitary(A):
         [bottom_left, bottom_right]
         ])
 
+    # It seems that U could have imaginary parts for some reason...
+    # Remove them but WARN the user
+    if np.any(np.iscomplex(U)):
+        print_log('debug', "Unitary matrix U contains imaginary parts:\n", U)
+        print_log('warn', "Unitary matrix U contains imaginary parts, removing them...")
+        U = np.real(U)
+
     return U
+
+# %% {"jupyter": {"source_hidden": true}}
+# Validate Top Left Matrix Corner
+#   Args:
+#       A:      initial matrix
+#       norm:   norm of A
+#       U:      unitary generated matrix
+#   Returns True or False based on if top left corner of U is equal to
+#   top left corner of A or A/norm(A) based on value of norm.
+def validate_top_left(A, norm, U):
+    is_valid = False
+
+    print_log('debug', ">>> Starting function: validate_top_left")
+    print_log('debug', ">>> Initial matrix input:\n", A)
+    print_log('debug', ">>> Norm of matrix input:\n", norm)
+    print_log('debug', ">>> Unitary matrix U:\n", U)
+
+    # Get number of column or row size of initial matrix A,
+    # to determine the size of the top left corner of U.
+    n = A.shape[0]
+    print_log('debug', ">>> Number of rows/columns of matrix input:\n", n)
+
+    # Calculate top left corner based on norm
+    if norm <= 1:
+        top_left_U_wannabe = A
+    else:
+        top_left_U_wannabe = A/norm
+    print_log('debug', ">>> Matrix top left corner based on norm:\n", top_left_U_wannabe)
+
+    # Get top left corner of U
+    top_left_U = U[0:n, 0:n]
+    print_log('debug', ">>> Matrix top left corner of U:\n", top_left_U)
+
+    # Compare
+    if np.allclose(top_left_U_wannabe, top_left_U):
+        is_valid = True
+
+    return is_valid
 
 # %% {"jupyter": {"source_hidden": true}}
 # Validate Unitary Function
 #   Args:
-#        U: Unitary matrix
+#       U: Unitary matrix
 #   Returns True or False based on if U is unitary
 def validate_unitary(U):
     is_unitary = False
@@ -427,8 +473,8 @@ def connect_ibm():
 
 # %%
 # Matrix
-classical_coin_flip_matrix = np.array([[0.5, 0.5], [0.5, 0.5]])
-print_log('info', 'classical_coin_flip_matrix =\n', classical_coin_flip_matrix)
+coin_flip_matrix = np.array([[0.5, 0.5], [0.5, 0.5]])
+print_log('info', 'classical coin flip matrix =\n', coin_flip_matrix)
 
 # %%
 # Graph
@@ -456,11 +502,11 @@ plot_graph(nodes, edges, 'Coin Flip Transition Graph')
 
 # %%
 # Matrix
-classical_code_matrix = np.array([[0, 0.5, 0.5, 0],
-                                  [0, 0, 1, 0],
-                                  [1, 0, 0, 0],
-                                  [0.5, 0.5, 0, 0]])
-print_log('info', 'classical_code_matrix =\n', classical_code_matrix)
+code_matrix = np.array([[0, 0.5, 0.5, 0],
+                        [0, 0, 1, 0],
+                        [1, 0, 0, 0],
+                        [0.5, 0.5, 0, 0]])
+print_log('info', 'classical code matrix =\n', code_matrix)
 
 # %%
 # Graph
@@ -489,11 +535,11 @@ plot_graph(nodes, edges, 'Code Transition Graph')
 
 # %%
 # Matrix
-classical_gaussianwaves_matrix = np.array([[0.3, 0.2, 0, 0.5],
-                                           [0.1, 0.4, 0, 0.5],
-                                           [0.8, 0, 0.2, 0],
-                                           [0.4, 0.05, 0.5, 0.05]])
-print_log('info', 'classical_gaussianwaves_matrix =\n', classical_gaussianwaves_matrix)
+gaussianwaves_matrix = np.array([[0.3, 0.2, 0, 0.5],
+                                 [0.1, 0.4, 0, 0.5],
+                                 [0.8, 0, 0.2, 0],
+                                 [0.4, 0.05, 0.5, 0.05]])
+print_log('info', 'classical gaussianwaves matrix =\n', gaussianwaves_matrix)
 
 # %%
 # Graph
@@ -604,58 +650,48 @@ plot_graph(nodes, edges, 'GaussianWaves Transition Graph')
 # $$
 
 # %%
-# Define A example
-A = np.array([[2-np.sqrt(2), 0, 0, 0],
-              [0, 2*np.sqrt(2), 0, 0],
-              [0, 0, 2*np.sqrt(2), 0],
-              [0, 0, 0, 2]])
-print_log('info', "Matrix A:\n", A)
+# Initial Classical matrix
+print_log('info', "Matrix:\n", code_matrix)
 
 
 # %%
 # Calculate norm of A for a non unitary matrix
-normA = calc_norm(A)
-print_log('info', "Norm of matrix A:\n", normA)
+code_norm = calc_norm(code_matrix)
+print_log('info', "Norm of matrix:\n", code_norm)
 
-# %%
 # Calculate unitary matrix for a non unitary matrix
-U = calc_unitary(A)
-print_log('info', "Unitary matrix U, calculated from not-unitary matrix A:\n", U)
+code_unitary = calc_unitary(code_matrix, code_norm)
+print_log('info', "Unitary matrix, calculated from not-unitary initial matrix:\n", code_unitary)
 
-# %%
-# Top left corner should contain:
-print_log('info', "Matrix A/norm(A) = C:\n", A/normA)
-
-# %%
 # Validate Unitary
-is_unitary = validate_unitary(U)
-print_log('info', "Is U unitary?:\n", is_unitary)
+print_log('info', "Is matrix unitary?\n", validate_unitary(code_unitary))
+
+# Validate top left corner
+print_log('info', "Is top left corner of Unitary equal to initial matrix, based on its norm?\n",
+          validate_top_left(code_matrix, code_norm, code_unitary))
 
 # %% [markdown]
 # ### <a id="quantum-gaussianwaves-example-subtitle-anchor"> Quantum GaussianWaves Example
 # Classical transition matrix created in the [▲ Classical GaussianWaves Example ▲](#classical-gaussianwaves-example-subtitle-anchor).
 
 # %%
-# Gaussian Waves Matrix
-print_log('info', "GaussianWaves Matrix:\n", classical_gaussianwaves_matrix)
-print_log('info', "Is GaussianWaves Matrix unitary?:\n", validate_unitary(classical_gaussianwaves_matrix))
+# Initial Gaussian Waves Matrix
+print_log('info', "GaussianWaves Matrix:\n", gaussianwaves_matrix)
+print_log('info', "Is GaussianWaves Matrix unitary?:\n", validate_unitary(gaussianwaves_matrix))
 
 # %%
 # Norm
-gaussian_waves_norm = calc_norm(classical_gaussianwaves_matrix)
+gaussian_waves_norm = calc_norm(gaussianwaves_matrix)
 print_log('info', "Norm of GaussianWaves Matrix:\n", gaussian_waves_norm)
 
-# %%
-# Make unitary and only keep real part
-gaussian_waves_unitary = calc_unitary(classical_gaussianwaves_matrix)
-real_gaussian_waves_unitary = gaussian_waves_unitary.real
-print_log('info', "Unitary matrix that contains GaussianWaves Matrix in top left corner:\n", real_gaussian_waves_unitary)
-print_log('info', "Is U unitary ?:\n", validate_unitary(real_gaussian_waves_unitary))
+# Make unitary
+gaussian_waves_unitary = calc_unitary(gaussianwaves_matrix, gaussian_waves_norm)
+print_log('info', "Unitary matrix that contains GaussianWaves Matrix in top left corner:\n", gaussian_waves_unitary)
+print_log('info', "Is matrix unitary ?:\n", validate_unitary(gaussian_waves_unitary))
 
-# %%
-# Confirm top left corner (4x4)
-print_log('info', "New unitary matrix top left corner:\n", real_gaussian_waves_unitary[0:4, 0:4])
-print_log('info', "Top left corner since norm > 1:\n", classical_gaussianwaves_matrix/gaussian_waves_norm)
+# Confirm top left corner
+print_log('info', "Is top left corner of Unitary matrix equal to initial matrix, based on norm?:\n",
+          validate_top_left(gaussianwaves_matrix, gaussian_waves_norm, gaussian_waves_unitary))
 
 # %% [markdown]
 # ### <a id="quantum-pennylane-example-subtitle-anchor"> Quantum Pennylane Example
@@ -671,13 +707,15 @@ print_log('info', "Top left corner since norm > 1:\n", classical_gaussianwaves_m
 # $$
 
 # %%
-# Oneliners example for B:
-B = np.array([[0.1, 0.2],
-              [0.3, 0.4]])
-print_log('info', "Matrix B:\n", B)
-pennylane_unitary = calc_unitary(B)
-print_log('info', "Unitary U that contains B in top left corner:\n", pennylane_unitary)
-print_log('info', "Is U unitary ?:\n", validate_unitary(calc_unitary(pennylane_unitary)))
+# Oneliners example for Pennylane example:
+pennylane_matrix=np.array([[0.1, 0.2], [0.3, 0.4]])
+print_log('info', "Matrix:\n", pennylane_matrix)
+pennylane_norm = calc_norm(pennylane_matrix)
+pennylane_unitary = calc_unitary(pennylane_matrix, pennylane_norm)
+print_log('info', "Unitary that contains initial matrix in top left corner:\n", pennylane_unitary)
+print_log('info', "Is matrix unitary ?:\n", validate_unitary(pennylane_unitary))
+print_log('info', "Is top left corner of Unitary equal to initial matrix, based on norm?:\n",
+          validate_top_left(pennylane_matrix, pennylane_norm, pennylane_unitary))
 
 # %% [markdown]
 # ## <a id="appendix-title-anchor"> Appendix
