@@ -60,24 +60,20 @@
 
 # %% {"jupyter": {"source_hidden": true}}
 # Imports
-# General
-import os
+import os                                               # General ▼
 import sys
 from datetime import datetime
 import numpy as np
 from scipy.linalg import sqrtm
-# Graph option 1
-import networkx as nx
+import networkx as nx                                   # Graph Options ▼
 import matplotlib.pyplot as plt
-# Graph option 2
-from graphviz import Digraph
-# Qiskit
-import qiskit
+import qiskit                                           # Qiskit ▼
 from qiskit import *
 from qiskit_aer import *
 from qiskit.visualization import plot_distribution
 import qiskit_ibm_runtime
 from qiskit_ibm_runtime import QiskitRuntimeService
+from qiskit.circuit.library import UnitaryGate
 
 # %% {"jupyter": {"source_hidden": true}}
 # Constants
@@ -404,6 +400,34 @@ def connect_ibm():
 
     return service
 
+# %% {"jupyter": {"source_hidden": true}}
+# Create Unitary Circuit Function
+#   Args:
+#       U: Unitary matrix
+#   Returns QuantumCircuit, created by a unitary matrix
+def create_unitary_circuit(U):
+    print_log('debug', ">>> Starting function: create_unitary_circuit")
+
+    # Create unitary circuit gates
+    gates = UnitaryGate(U)
+    print_log('debug', ">>> Unitary circuit gates:\n", gates)
+
+    # Get number of quantum/classical bits
+    qbits = gates.num_qubits
+    cbits = gates.num_clbits
+    print_log('debug', ">>> Number of quantum bits:", qbits)
+    print_log('debug', ">>> Number of classical bits:", cbits)
+
+    # Create circuit
+    circuit = QuantumCircuit(qbits, cbits)
+
+    # Add gates
+    circuit.append(gates,
+                   [q for q in range(0,qbits)],
+                   [c for c in range(0,cbits)])
+
+    return circuit
+
 # %% [markdown]
 # ## <a id="markov-chains-title-anchor"> Markov Chains
 # A Markov Chain
@@ -670,6 +694,11 @@ print_log('info', "Is matrix unitary?\n", validate_unitary(code_unitary))
 print_log('info', "Is top left corner of Unitary equal to initial matrix, based on its norm?\n",
           validate_top_left(code_matrix, code_norm, code_unitary))
 
+# %%
+# Create Quantum Circuit
+code_circuit = create_unitary_circuit(code_unitary)
+print_log('info', "Quantum Circuit:\n", code_circuit)
+
 # %% [markdown]
 # ### <a id="quantum-gaussianwaves-example-subtitle-anchor"> Quantum GaussianWaves Example
 # Classical transition matrix created in the [▲ Classical GaussianWaves Example ▲](#classical-gaussianwaves-example-subtitle-anchor).
@@ -692,6 +721,11 @@ print_log('info', "Is matrix unitary ?:\n", validate_unitary(gaussian_waves_unit
 # Confirm top left corner
 print_log('info', "Is top left corner of Unitary matrix equal to initial matrix, based on norm?:\n",
           validate_top_left(gaussianwaves_matrix, gaussian_waves_norm, gaussian_waves_unitary))
+
+# %%
+# Quantum circuit of GaussianWaves Matrix
+gaussian_waves_circuit = create_unitary_circuit(gaussian_waves_unitary)
+print_log('info', "Quantum circuit of GaussianWaves Matrix:\n", gaussian_waves_circuit)
 
 # %% [markdown]
 # ### <a id="quantum-pennylane-example-subtitle-anchor"> Quantum Pennylane Example
@@ -716,6 +750,11 @@ print_log('info', "Unitary that contains initial matrix in top left corner:\n", 
 print_log('info', "Is matrix unitary ?:\n", validate_unitary(pennylane_unitary))
 print_log('info', "Is top left corner of Unitary equal to initial matrix, based on norm?:\n",
           validate_top_left(pennylane_matrix, pennylane_norm, pennylane_unitary))
+
+# %%
+# Quantum circuit of Pennylane example:
+pennylane_circuit = create_unitary_circuit(pennylane_unitary)
+print_log('info', "Quantum Circuit:\n", pennylane_circuit)
 
 # %% [markdown]
 # ## <a id="appendix-title-anchor"> Appendix
