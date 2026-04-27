@@ -412,7 +412,7 @@ def create_unitary_circuit(U):
     gates = UnitaryGate(U)
     print_log('debug', ">>> Unitary circuit gates:\n", gates)
 
-    # Get number of quantum/classical bits
+    # Get number of quantum/classical bits (classical probably always zero)
     qbits = gates.num_qubits
     cbits = gates.num_clbits
     print_log('debug', ">>> Number of quantum bits:", qbits)
@@ -422,11 +422,32 @@ def create_unitary_circuit(U):
     circuit = QuantumCircuit(qbits, cbits)
 
     # Add gates
-    circuit.append(gates,
-                   [q for q in range(0,qbits)],
-                   [c for c in range(0,cbits)])
+
+    # 1. append() adds circuit as a single entity
+    # circuit.append(gates,
+    #                [q for q in range(0,qbits)],
+    #                [c for c in range(0,cbits)])
+
+    # 2. unitary() apply gates to qubits (...)
+    circuit.unitary(gates, [q for q in range(0,qbits)])
+
+    # 3. compose() combine instructions of 2 circuits
+    # circuit.compose(gates, qubits=[q for q in range(0,qbits)], inplace=True)
 
     return circuit
+
+# %% {"jupyter": {"source_hidden": true}}
+# Print Decomposed Circuit Function
+#   Args:
+#       circuit: QuantumCircuit
+#   Returns decomposed circuit
+def get_decomposed_circuit(circuit):
+    print_log('debug', ">>> Starting function: print_decomposed_circuit")
+
+    # Print decomposed circuit
+    decomposed_circuit = circuit.decompose()
+
+    return decomposed_circuit
 
 # %% [markdown]
 # ## <a id="markov-chains-title-anchor"> Markov Chains
@@ -697,7 +718,7 @@ print_log('info', "Is top left corner of Unitary equal to initial matrix, based 
 # %%
 # Create Quantum Circuit
 code_circuit = create_unitary_circuit(code_unitary)
-print_log('info', "Quantum Circuit:\n", code_circuit)
+print_log('info', "Quantum Circuit:\n", get_decomposed_circuit(code_circuit))
 
 # %% [markdown]
 # ### <a id="quantum-gaussianwaves-example-subtitle-anchor"> Quantum GaussianWaves Example
@@ -725,7 +746,7 @@ print_log('info', "Is top left corner of Unitary matrix equal to initial matrix,
 # %%
 # Quantum circuit of GaussianWaves Matrix
 gaussian_waves_circuit = create_unitary_circuit(gaussian_waves_unitary)
-print_log('info', "Quantum circuit of GaussianWaves Matrix:\n", gaussian_waves_circuit)
+print_log('info', "Quantum circuit of GaussianWaves Matrix:\n", get_decomposed_circuit(gaussian_waves_circuit))
 
 # %% [markdown]
 # ### <a id="quantum-pennylane-example-subtitle-anchor"> Quantum Pennylane Example
@@ -754,7 +775,7 @@ print_log('info', "Is top left corner of Unitary equal to initial matrix, based 
 # %%
 # Quantum circuit of Pennylane example:
 pennylane_circuit = create_unitary_circuit(pennylane_unitary)
-print_log('info', "Quantum Circuit:\n", pennylane_circuit)
+print_log('info', "Quantum PennyLane Circuit:\n", get_decomposed_circuit(pennylane_circuit))
 
 # %% [markdown]
 # ## <a id="appendix-title-anchor"> Appendix
