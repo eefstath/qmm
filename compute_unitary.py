@@ -380,7 +380,6 @@ def connect_ibm():
 
     if not IBM_INSTANCE:
         print_log('error', "Environment variable IBMQ_INSTANCE not set, create it...")
-    print_log('debug', ">>> Instance connected to IBM Cloud:", account.get("instance"))
 
     # Save account
     QiskitRuntimeService.save_account(
@@ -396,6 +395,7 @@ def connect_ibm():
     # Verify account connection
     account=service.active_account()
     print_log('info', "Channel connected to IBM Cloud:", account.get("channel"))
+    print_log('debug', ">>> Instance connected to IBM Cloud:", account.get("instance"))
     print_log('debug', ">>> List of available backends:", service.backends())
 
     return service
