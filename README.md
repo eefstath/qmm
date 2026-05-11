@@ -4,16 +4,30 @@ A collection of files necessary for understanding and testing Classical-Quantum 
 ### Whats inside
 - compute_unitary.ipynb
 - compute_unitary.py
+- setup_qmm.sh
 - README.md
 
 ### Concept
-- Python and Jupyter notebook files:
+- Python and Jupyter notebook files:<br>
   Changes in the .py file are reflected into the .ipynb file by syncing (automatically).
   This serves both writing a Python code file, ready to be executed in the console and having seperate, individual cells ready to be executed in a Jupyter notebook.
-- The configuration setup includes syncing the files, running the Jupyter server, running Qiskit library commands and others. There are easier ways to do this...
+- The configuration setup includes syncing the files, running the Jupyter server, running Qiskit library commands and others.
 
 ### First time setup
-***Instructions for a first time setup, to create the virtual environment and download all necessary modules inside, sparing your real environment's disk size and complexity***
-- Add instructions
+- Virtual Environment Setup:<br>
+  Run executable to create a Python virtual environment and download all necessary libraries. Deleting the virtual environment removes modules and frees space.
+- Alias Setup:<br>
+  Setup an alias to quickly activate your browser Jupyter lab. Port-forward in **8888**.
+  ```
+  alias jupstart='cd ~; source ~/jupyter-venv/bin/activate; jupyter lab --no-browser --port=8888'
+  ```
 
 ### Quick start
+- Activate and hop in:
+  ```
+  $ jupstart
+  ```
+- Access in broswer:
+  ```
+  localhost:8888
+  ```
