@@ -8,7 +8,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.18.1
+#       jupytext_version: 1.19.2
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -449,6 +449,33 @@ def get_decomposed_circuit(circuit):
 
     return decomposed_circuit
 
+# %% {"jupyter": {"source_hidden": true}}
+# Find next step in Markov Chain -- Classical
+#   Args:
+#       matrix:     transition matrix
+#       current:    current step ID
+#       titles:     title of transitions (optional)
+#   Returns the next step ID
+def get_next_step_classical(matrix, current, titles=None):
+    print_log('debug', ">>> Starting function: get_next_step")
+
+    print_log('debug', ">>> Matrix input:\n", matrix)
+    print_log('debug', ">>> Current step ID: ", current)
+
+    # Random next step based on probs
+    next_step_id = np.random.choice(
+            [x for x in range(0, len(matrix[current]))],
+            p=matrix[current])
+
+    print_log('debug', ">>> Next step ID: ", next_step_id)
+
+    # Print info log if titles are given
+    if titles:
+        print_log('info', "Current step: ", titles[current])
+        print_log('info', "Next step: ", titles[next_step_id])
+
+    return next_step_id
+
 # %% [markdown]
 # ## <a id="markov-chains-title-anchor"> Markov Chains
 # A Markov Chain
@@ -588,12 +615,22 @@ print_log('info', 'classical gaussianwaves matrix =\n', gaussianwaves_matrix)
 
 # %%
 # Graph
-nodes=['Accelerate', 'Constant Speed', 'Idling', 'Brake']
-edges=[('Accelerate', 'Accelerate', 0.3), ('Accelerate', 'Constant Speed', 0.2), ('Accelerate', 'Brake', 0.5),
+gaussianwaves_nodes=['Accelerate', 'Constant Speed', 'Idling', 'Brake']
+gaussianwaves_edges=[('Accelerate', 'Accelerate', 0.3), ('Accelerate', 'Constant Speed', 0.2), ('Accelerate', 'Brake', 0.5),
        ('Constant Speed', 'Accelerate', 0.1), ('Constant Speed', 'Constant Speed', 0.4), ('Constant Speed', 'Brake', 0.5),
        ('Idling', 'Accelerate', 0.8), ('Idling', 'Idling', 0.2),
        ('Brake', 'Accelerate', 0.4), ('Brake', 'Constant Speed', 0.05), ('Brake', 'Idling', 0.5), ('Brake', 'Brake', 0.05)]
-plot_graph(nodes, edges, 'GaussianWaves Transition Graph')
+plot_graph(gaussianwaves_nodes, gaussianwaves_edges, 'GaussianWaves Transition Graph')
+
+# %%
+# Next steps...
+# gaussianwaves_init_id = 3                                           # Init step (3) Brake
+# current_step = gaussianwaves_init_id
+# for i in range(1, 1000):                                            # For 1000 steps
+#     temp_next_step = get_next_step_classical(gaussianwaves_matrix,
+#                                              current_step,
+#                                              gaussianwaves_nodes)
+#     current_step = temp_next_step
 
 # %% [markdown]
 # <a href="#quantum-gaussianwaves-example-subtitle-anchor">[▼ Jump to Quantum GaussianWaves Example ▼]</a>
