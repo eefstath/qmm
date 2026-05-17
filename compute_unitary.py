@@ -98,8 +98,8 @@ IBM_TOKEN=os.environ.get('IBMQ_TOKEN')          # Must be set in env
 #       rest of args: message
 def print_log(level, *args):
     # Set debug mode
-    debug = True
-    # debug = False
+    # debug = True
+    debug = False
 
     # Set timestamp format
     timestamp = datetime.now().strftime('%m-%d %H:%M:%S')
@@ -123,7 +123,7 @@ def print_log(level, *args):
     if level == 'error': sys.exit(1)
 
 # %% {"jupyter": {"source_hidden": true}}
-# Plot function
+# Plot graph function
 #   Args:
 #       N: matrix with all nodes, example n=('|00⟩', '|01⟩', '|10⟩', '|11⟩')
 #       E: matrix with all edges, example e=(('|00⟩', '|01⟩', 1), ('|00⟩', '|10⟩', 1))
@@ -193,6 +193,45 @@ def plot_graph(N, E, title):
 
     # Show plot
     plt.title(title)
+    plt.show()
+
+# %% {"jupyter": {"source_hidden": true}}
+# Plot histogram function
+# If label1/2 and labelx/y are omitted, default values are set
+# If alpha/bins are omitted, default values are set
+#   Args:
+#       matrix1_array:      matrix 1 array sequence
+#       matrix2_array:      matrix 2 array sequence
+#       label1:             label for matrix 1 sequence
+#       label2:             label for matrix 2 sequence
+#       alpha:              alpha for hist graph
+#       bins:               bins for hist graph
+def plot_hist(matrix1_array, matrix2_array, title="Log-Odds Score Comparison",
+#       titles:         titles of transitions
+              label1="1st sequence", label2="2nd sequence",
+              labelx="log2-bits", labely="Frequency",
+              alpha=0.7, bins=50):
+
+    print_log('debug', ">>> Starting function: plot_hist")
+
+    # Initialize
+    color1 = "dimgray"
+    color2 = "red"
+    plt.xlabel(labelx)
+    plt.ylabel(labely)
+    print_log('debug', ">>> Initializing histogram with:",
+              "\nLabel X:", labelx,
+              "\nLabel Y:", labely,
+              "\nLabel 1:", label1,
+              "\nLabel 2:", label2)
+
+    # Create graphs
+    plt.hist(matrix1_array, bins=bins, color=color1, label=label1, alpha=alpha)
+    plt.hist(matrix2_array, bins=bins, color=color2 ,label=label2, alpha=alpha)
+
+    # Plot
+    plt.title(title)
+    plt.legend()
     plt.show()
 
 # %% {"jupyter": {"source_hidden": true}}
@@ -450,6 +489,30 @@ def get_decomposed_circuit(circuit):
     return decomposed_circuit
 
 # %% {"jupyter": {"source_hidden": true}}
+# Calculate the betas based on two matrices.
+# Use 2 as a base of log.
+#   Args:
+#       matrix1:    1st input of probabilities
+#       matrix2:    2nd input of probabilities
+#   Returns the beta matrix of every possible transition
+def calc_betas(matrix1, matrix2=None):
+    print_log('debug', ">>> Starting function: calc_betas")
+
+    # Epsilon smoothing for impossible probabilities(P=0)
+    epsilon = 1e-9
+
+    # Number of states
+    num_states = len(matrix1)
+
+    # Calculate:
+    betas = [[ (np.log2((matrix1[i][j] + epsilon)/matrix2[i][j]))
+              for j in range(0, num_states)]
+             for i in range(0, num_states)]
+    print_log('debug', ">>> betas matrix:\n", betas)
+
+    return betas
+
+# %% {"jupyter": {"source_hidden": true}}
 # Find next step in Markov Chain -- Classical
 #   Args:
 #       matrix:     transition matrix
@@ -457,7 +520,7 @@ def get_decomposed_circuit(circuit):
 #       titles:     title of transitions (optional)
 #   Returns the next step ID
 def get_next_step_classical(matrix, current, titles=None):
-    print_log('debug', ">>> Starting function: get_next_step")
+    print_log('debug', ">>> Starting function: get_next_step_classical")
 
     print_log('debug', ">>> Matrix input:\n", matrix)
     print_log('debug', ">>> Current step ID: ", current)
@@ -471,10 +534,101 @@ def get_next_step_classical(matrix, current, titles=None):
 
     # Print info log if titles are given
     if titles:
-        print_log('info', "Current step: ", titles[current])
-        print_log('info', "Next step: ", titles[next_step_id])
+        print_log('debug', ">>> Step: ", titles[current], " -> ", titles[next_step_id])
 
     return next_step_id
+
+
+# %% {"jupyter": {"source_hidden": true}}
+# Calculate log-odds score of a sequence of X steps
+#   Args:
+#       init_step:      initial step
+#       matrix:         transition matrix
+#       betas:          betas matrix
+#       titles          title of transitions
+#       steps:          X number of steps of the sequence
+#   Returns the log-odds score S of the sequence
+def simulate_sequence_classical(init_step, matrix, betas, titles, steps=1000):
+    print_log('debug', ">>> Starting function: simulate_sequence_classical")
+
+    # Initialize Sequence (betas) summary
+    S = 0
+    S_string = "|| "
+
+    # Add init step
+    current_step = init_step
+    S_string += titles[current_step]
+
+    # Iterate steps
+    for i in range(0, steps):
+        # Calculate next step
+        next_step = get_next_step_classical(matrix, current_step, titles)
+
+        # Calculate sequence string and betas summary
+        S_string += " -> " + titles[next_step]
+        S += betas[current_step][next_step]
+
+        # Debug log
+        print_log('debug', ">>> It=", i, "> Beta for:", titles[current_step], "--", titles[next_step],
+                  " = ", betas[current_step][next_step])
+
+        # Prepare step for next iteration
+        current_step = next_step
+
+    # Close sequence string
+    S_string += " ||"
+
+    return S, S_string
+
+# %% {"jupyter": {"source_hidden": true}}
+# Compare log-odds scores
+# If matrix2 input is omitted, background noise will be used
+# If init step is omitted, random value will be used
+# If times/steps inputs are omitted, 100 will be used for both
+#   Args:
+#       titles:         titles of transitions
+#       matrix1:        transition matrix 1 input
+#       matrix2:        transition matrix 2 input
+#       init_step:      initial step for both sequences
+#       times:          # times sequences will be simulated
+#       steps:          # steps each sequence will run
+#   Returns the sequence matrix for each matrix input
+def compare_sequence_classical(titles, matrix1, matrix2=None, init_step=None, times=100, steps=100):
+    print_log('debug', ">>> Starting function: compare_sequence_classical")
+
+    # Number of all possible states
+    num_states = len(titles)
+    states_id_array = [i for i in range(0, num_states)]
+    print_log('debug', ">>> Num of states based on titles input: ", num_states,
+                       " and states id array\n:", states_id_array)
+
+    # Example of background noise:
+    # BG noise is 0.25 for every transition when there are 4 possible states
+    if matrix2 is None:
+        matrix2 = [[ 1/num_states for i in states_id_array] for i in states_id_array]
+        print_log('debug', ">>> Background noise matrix2:\n", matrix2)
+
+    # Calculate betas
+    betas = calc_betas(matrix1, matrix2)
+    print_log('debug', ">>> Betas:\n", betas)
+
+    # Initialize
+    target_array, bg_array = [], []                                             # Target/Background sequences arrays
+    if init_step is None: init_step = np.random.choice(states_id_array)         # Random init step if None
+    print_log('debug', ">>> Init step = ", init_step, "--", titles[init_step])
+
+    # Calculate M1/M2 sequences
+    # String sequences of each run are unused for now
+    for it in range(0, times):
+        # Sequence Target
+        target_seq, target_seq_string = simulate_sequence_classical(init_step, matrix1, betas, titles, steps=steps)
+        target_array.append(target_seq)
+
+        # Sequence Background
+        bg_seq, bg_seq_string = simulate_sequence_classical(init_step, matrix2, betas, titles, steps=steps)
+        bg_array.append(bg_seq)
+
+    return target_array, bg_array
 
 # %% [markdown]
 # ## <a id="markov-chains-title-anchor"> Markov Chains
@@ -623,14 +777,15 @@ gaussianwaves_edges=[('Accelerate', 'Accelerate', 0.3), ('Accelerate', 'Constant
 plot_graph(gaussianwaves_nodes, gaussianwaves_edges, 'GaussianWaves Transition Graph')
 
 # %%
-# Next steps...
-# gaussianwaves_init_id = 3                                           # Init step (3) Brake
-# current_step = gaussianwaves_init_id
-# for i in range(1, 1000):                                            # For 1000 steps
-#     temp_next_step = get_next_step_classical(gaussianwaves_matrix,
-#                                              current_step,
-#                                              gaussianwaves_nodes)
-#     current_step = temp_next_step
+# Validate Markov Model against background noise and plot
+gaussianwaves_seq_target, gaussianwaves_seq_bg = compare_sequence_classical(
+        titles=gaussianwaves_nodes,
+        matrix1=gaussianwaves_matrix)
+plot_hist(matrix1_array=gaussianwaves_seq_target,
+          matrix2_array=gaussianwaves_seq_bg,
+          title="Gaussian Waves Example Log-Odds Score Comparison",
+          label1="Markov Model Sequences",
+          label2="Background Noise Sequences")
 
 # %% [markdown]
 # <a href="#quantum-gaussianwaves-example-subtitle-anchor">[▼ Jump to Quantum GaussianWaves Example ▼]</a>
