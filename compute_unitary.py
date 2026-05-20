@@ -495,7 +495,7 @@ def get_decomposed_circuit(circuit):
 #       matrix1:    1st input of probabilities
 #       matrix2:    2nd input of probabilities
 #   Returns the beta matrix of every possible transition
-def calc_betas(matrix1, matrix2=None):
+def calc_betas(matrix1, matrix2):
     print_log('debug', ">>> Starting function: calc_betas")
 
     # Epsilon smoothing for impossible probabilities(P=0)
@@ -512,8 +512,41 @@ def calc_betas(matrix1, matrix2=None):
 
     return betas
 
+
 # %% {"jupyter": {"source_hidden": true}}
-# Find next step in Markov Chain -- Classical
+# Find T-step transition probability matrix
+#   Args:
+#       matrix:     probabilities transition NxN matrix
+#       current:    current step probability 1xN matrix
+#       steps:      #t steps to transition (default=1)
+#   Returns the t-step transition probability matrix
+def step_transition(matrix, current, steps=1):
+    print_log('debug', ">>> Starting function: step_transition")
+
+    print_log('debug', ">>> Matrix input:\n", matrix)
+    print_log('debug', ">>> Current step probabilities: ", current)
+    print_log('debug', ">>> Steps to run: ", steps)
+
+    # Input check
+    if (len(current) != len(matrix[0])):
+        print_log('error', 'Current Step Probability matrix does not have column dim equal to Transition Matrix row dim')
+    if (steps <= 0):
+        print_log('error', 'Number of transition steps cannot be less or equal to 0')
+
+    # Taking one step in the Markov chain corresponds to multiplying by P on the right.
+    # matrix raised in steps:
+    raised_matrix = np.linalg.matrix_power(matrix, steps)
+    print_log('debug','>>> Raised matrix in power of:', steps, '\n', raised_matrix)
+
+    # Create target transition step probability matrix
+    t_trans = np.dot(current, raised_matrix)
+    print_log('debug', ">>> Target transition step probability matrix: ", t_trans)
+
+    return t_trans
+
+
+# %% {"jupyter": {"source_hidden": true}}
+# Find next step in Markov Chain using t-step transition with t=1
 #   Args:
 #       matrix:     transition matrix
 #       current:    current step ID
@@ -525,10 +558,17 @@ def get_next_step_classical(matrix, current, titles=None):
     print_log('debug', ">>> Matrix input:\n", matrix)
     print_log('debug', ">>> Current step ID: ", current)
 
+    # Number of states
+    num_states = len(matrix)
+
+    # Create current step probability matrix
+    current_step_matrix = np.block([0]*num_states)
+    current_step_matrix[current] = 1
+
     # Random next step based on probs
     next_step_id = np.random.choice(
             [x for x in range(0, len(matrix[current]))],
-            p=matrix[current])
+            p=step_transition(matrix, current_step_matrix))
 
     print_log('debug', ">>> Next step ID: ", next_step_id)
 
@@ -605,7 +645,7 @@ def compare_sequence_classical(titles, matrix1, matrix2=None, init_step=None, ti
     # Example of background noise:
     # BG noise is 0.25 for every transition when there are 4 possible states
     if matrix2 is None:
-        matrix2 = [[ 1/num_states for i in states_id_array] for i in states_id_array]
+        matrix2 = np.block([[ 1/num_states for i in states_id_array] for i in states_id_array])
         print_log('debug', ">>> Background noise matrix2:\n", matrix2)
 
     # Calculate betas
@@ -761,7 +801,7 @@ plot_graph(nodes, edges, 'Code Transition Graph')
 
 # %%
 # Matrix
-gaussianwaves_matrix = np.array([[0.3, 0.2, 0, 0.5],
+gaussianwaves_matrix = np.block([[0.3, 0.2, 0, 0.5],
                                  [0.1, 0.4, 0, 0.5],
                                  [0.8, 0, 0.2, 0],
                                  [0.4, 0.05, 0.5, 0.05]])
@@ -775,6 +815,19 @@ gaussianwaves_edges=[('Accelerate', 'Accelerate', 0.3), ('Accelerate', 'Constant
        ('Idling', 'Accelerate', 0.8), ('Idling', 'Idling', 0.2),
        ('Brake', 'Accelerate', 0.4), ('Brake', 'Constant Speed', 0.05), ('Brake', 'Idling', 0.5), ('Brake', 'Brake', 0.05)]
 plot_graph(gaussianwaves_nodes, gaussianwaves_edges, 'GaussianWaves Transition Graph')
+
+# %%
+# Show different examples of transitions
+# 1 step, starting at idling:
+gw_init_state_prob = np.block([0,0,1,0])
+gw_1step_prob = step_transition(gaussianwaves_matrix, gw_init_state_prob, steps=1)
+print_log("info", "1 step probabilities with init state: Idling->\n", gw_1step_prob)
+
+# 2 step, starting at idling:
+gw_init_state_prob = np.block([0,0,1,0])
+gw_2step_prob = step_transition(gaussianwaves_matrix, gw_init_state_prob, steps=2)
+print_log("info", "2 step probabilities with init state: Idling->\n", gw_2step_prob)
+
 
 # %%
 # Validate Markov Model against background noise and plot
@@ -795,7 +848,7 @@ plot_hist(matrix1_array=gaussianwaves_seq_target,
 # [Add something here]
 
 # %% [markdown]
-# ## <a id="quantum-transitions-subtitle-anchor"> Quantum Transitions
+# ## <a id="quantum-transblocks-subtitle-anchor"> Quantum Transitions
 # [Add something here]... Since the transition matrix is not unitary in some (most?) cases, we must
 # compute the unitary matrix using the operator norm.
 
