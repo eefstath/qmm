@@ -15,7 +15,10 @@ A collection of files necessary for understanding and testing Classical-Quantum 
 
 ### First time setup
 - Virtual Environment Setup:<br>
-  Run executable to create a Python virtual environment and download all necessary libraries. Deleting the virtual environment removes modules and frees space.
+  Run executable to create a Python virtual environment in /home/[USER]/ and download all necessary libraries. Deleting the virtual environment removes modules and frees space.
+  ```
+  ./setup_qmm.sh
+  ```
 - Alias Setup:<br>
   Setup an alias to quickly activate your browser Jupyter lab. Port-forward in **8888**.
   ```
