@@ -8,7 +8,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.19.2
+#       jupytext_version: 1.18.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -38,25 +38,39 @@
 
 # %% [markdown]
 # ## Contents
-# - [Code prerequisites](#code-preq-title-anchor)
-# - [Markov Chains](#markov-chains-title-anchor)
+# - [Prerequisites](#prerequisites-title-anchor)
+#   - [Math & Probability Fundamentals](#math-and-probability-fundamentals-subtitle-anchor)
+#   - [Environment Setup](#environment-setup-subtitle-anchor)
+#   - [Code Imports & Functions](#code-imports-and-functions-subtitle-anchor)
+# - [Classical Markov Chains](#classical-markov-chains-title-anchor)
 #   - [Transitions](#transitions-subtitle-anchor)
-#   - [Classical Coin Flip Example](#classical-coin-flip-example-subtitle-anchor)
-#   - [Classical Code Example](#classical-code-example-subtitle-anchor)
-#   - [Classical GaussianWaves Example](#classical-gaussianwaves-example-subtitle-anchor)
 # - [Quantum Markov Chains](#quantum-markov-chains-title-anchor)
 #   - [Quantum Transitions](#quantum-transitions-subtitle-anchor)
 #   - [Compute Unitary Matrix](#compute-unitary-matrix-subtitle-anchor)
-#   - [Quantum Coin Flip Example](#quantum-coin-flip-example-subtitle-anchor)
-#   - [Quantum Code Example](#quantum-code-example-subtitle-anchor)
+# - [Examples](#examples-title-anchor)
+#   - [Classical GaussianWaves Example](#classical-gaussianwaves-example-subtitle-anchor)
 #   - [Quantum GaussianWaves Example](#quantum-gaussianwaves-example-subtitle-anchor)
+# - [More Examples](#more-examples-title-anchor)
+#   - [Classical Coin Flip Example](#classical-coin-flip-example-subtitle-anchor)
+#   - [Quantum Coin Flip Example](#quantum-coin-flip-example-subtitle-anchor)
+#   - [Classical Code Example](#classical-code-example-subtitle-anchor)
+#   - [Quantum Code Example](#quantum-code-example-subtitle-anchor)
 #   - [Quantum Pennylane Example](#quantum-pennylane-example-subtitle-anchor)
 # - [Appendix](#appendix-title-anchor)
 #   - [Definitions](#definitions-subtitle-anchor)
 # - [References](#references-title-anchor)
 
 # %% [markdown]
-# ## <a id="code-preq-title-anchor"> Code prerequisites
+# ## <a id="prerequisites-title-anchor"> Prerequisites
+
+# %% [markdown]
+# ### <a id="math-and-probability-fundamentals-subtitle-anchor"> Math & Probability Fundamentals
+
+# %% [markdown]
+# ### <a id="environment-setup-subtitle-anchor"> Environment Setup
+
+# %% [markdown]
+# ### <a id="code-imports-and-functions-subtitle-anchor"> Code Imports & Functions
 
 # %% {"jupyter": {"source_hidden": true}}
 # Imports
@@ -723,68 +737,48 @@ def compare_sequence_classical(titles, matrix1, matrix2=None, init_step=None, ti
 # <br>
 # The Markov process must also be characterized by an *initial staste* (or initial distribution) across the state space.
 
-# %% [markdown]
-# ### <a id="classical-coin-flip-example-subtitle-anchor"> Coin Flip Example
-# Here is a simple example of a coin flip Markov Chain
-# <sup>
-#  [[5]](#coin-flip-example-ref-anchor)
-# </sup>
-# where the coin can only have two states: heads (H) or tails (T). At each step, we flip the (fair, balanced) coin and produce the new state which is **H or T** with equal probability. The probability of each transition should be **$\frac{1}{2}$** and the transition matrix should look like:
-# $$P(H|H) = P(H|T) = P(T|H) = P(T|T) = \frac{1}{2}$$
-# <table>
-#   <tr><th>States</th><th>H</th><th>T</th></tr>
-#   <tr><th>H</th><td>$\frac{1}{2}$</td><td>$\frac{1}{2}$</td></tr>
-#   <tr><th>T</th><td>$\frac{1}{2}$</td><td>$\frac{1}{2}$</td></tr>
-# </table>
-
-# %%
-# Matrix
-coin_flip_matrix = np.array([[0.5, 0.5], [0.5, 0.5]])
-print_log('info', 'classical coin flip matrix =\n', coin_flip_matrix)
-
-# %%
-# Graph
-nodes=['H', 'T']
-edges=[('H', 'H', 0.5), ('H', 'T', 0.5),
-       ('T', 'H', 0.5), ('T', 'T', 0.5)]
-plot_graph(nodes, edges, 'Coin Flip Transition Graph')
 
 # %% [markdown]
-# <a href="#quantum-coin-flip-example-subtitle-anchor">[▼ Jump to Quantum Coin Flip Example ▼]</a>
+# ## <a id="quantum-markov-chains-title-anchor"> Quantum Markov Chain
+# [Add something here]
 
 # %% [markdown]
-# ### <a id="classical-code-example-subtitle-anchor"> Classical Code Example
-# Slides example of some transitions that consists of 4 states. The transition matrix should look like:
-# $$P(A|B) = P(A|C) = P(D|B) = P(D|C) = \frac{1}{2}$$
-# $$P(B|A) = P(B|B) = P(B|C) = P(B|D) = P(C|A) = P(C|B) = 0$$
-# $$P(B|C) = P(C|A) = 1$$
-# <table>
-#   <tr><th>States</th><th>A</th><th>B</th><th>C</th><th>D</th></tr>
-#   <tr><th>A</th><td>$0$</td><td>$\frac{1}{2}$</td><td>$\frac{1}{2}$</td><td>$0$</td></tr>
-#   <tr><th>B</th><td>$0$</td><td>$0$</td><td>$1$</td><td>$0$</td></tr>
-#   <tr><th>C</th><td>$1$</td><td>$0$</td><td>$0$</td><td>$0$</td></tr>
-#   <tr><th>D</th><td>$\frac{1}{2}$</td><td>$\frac{1}{2}$</td><td>$0$</td><td>$0$</td></tr>
-# </table>
-
-# %%
-# Matrix
-code_matrix = np.array([[0, 0.5, 0.5, 0],
-                        [0, 0, 1, 0],
-                        [1, 0, 0, 0],
-                        [0.5, 0.5, 0, 0]])
-print_log('info', 'classical code matrix =\n', code_matrix)
-
-# %%
-# Graph
-nodes=['A', 'B', 'C', 'D']
-edges=[('A', 'B', 0.5), ('A', 'C', 0.5),
-       ('B', 'C', 1),
-       ('C', 'D', 1),
-       ('D', 'A', 0.5), ('D', 'B', 0.5)]
-plot_graph(nodes, edges, 'Code Transition Graph')
+# ### <a id="quantum-transblocks-subtitle-anchor"> Quantum Transitions
+# [Add something here]... Since the transition matrix is not unitary in some (most?) cases, we must
+# compute the unitary matrix using the operator norm.
 
 # %% [markdown]
-# <a href="#quantum-code-example-subtitle-anchor">[▼ Jump to Quantum Code Example ▼]</a>
+# ### <a id="compute-unitary-matrix-subtitle-anchor"> Compute Unitary Matrix
+# The operator norm, or spectral norm is the largest singular value of A.
+#
+# Singular values are the square roots of the eigenvalues of $A^{\dagger}A$
+#
+# Steps:
+# - Compute $P=A^{\dagger}A$
+# - Compute the eigenvalues of $P$.
+# - Find the maximum eigenvalue.
+# - Compute the square root of the maximum eigenvalue.
+#
+# Or oneliner:
+# $||A||_{2} = \sqrt{\lambda_{\max}(A^{\dagger}A)}$
+#
+# This equals to the norm of A, which:
+# - If less than 1: top left corner of the matrix is $C=A/||A||_{2}$
+# - If greater than 1: top left corner of the matrix is $A$
+#
+# So TopLeft equals A or C.
+# And the rest of the Unitary matrix U, equals to:
+# $$ U =
+# \begin{pmatrix}
+# TopLeft & \sqrt{I - TopLeft^{\dagger} TopLeft} \\\\
+# \sqrt{I - TopLeft TopLeft^{\dagger}} & - TopLeft^{\dagger}
+# \end{pmatrix}
+# $$
+#
+#
+
+# %% [markdown]
+# ## <a id="examples-title-anchor"> Examples
 
 # %% [markdown]
 # ### <a id="classical-gaussianwaves-example-subtitle-anchor"> Classical GaussianWaves Example
@@ -844,47 +838,102 @@ plot_hist(matrix1_array=gaussianwaves_seq_target,
 # <a href="#quantum-gaussianwaves-example-subtitle-anchor">[▼ Jump to Quantum GaussianWaves Example ▼]</a>
 
 # %% [markdown]
-# # <a id="quantum-markov-chains-title-anchor"> Quantum Markov Chain
-# [Add something here]
+# ### <a id="quantum-gaussianwaves-example-subtitle-anchor"> Quantum GaussianWaves Example
+# Classical transition matrix created in the [▲ Classical GaussianWaves Example ▲](#classical-gaussianwaves-example-subtitle-anchor).
+
+# %%
+# Initial Gaussian Waves Matrix
+print_log('info', "GaussianWaves Matrix:\n", gaussianwaves_matrix)
+print_log('info', "Is GaussianWaves Matrix unitary?:\n", validate_unitary(gaussianwaves_matrix))
+
+# %%
+# Norm
+gaussian_waves_norm = calc_norm(gaussianwaves_matrix)
+print_log('info', "Norm of GaussianWaves Matrix:\n", gaussian_waves_norm)
+
+# Make unitary
+gaussian_waves_unitary = calc_unitary(gaussianwaves_matrix, gaussian_waves_norm)
+print_log('info', "Unitary matrix that contains GaussianWaves Matrix in top left corner:\n", gaussian_waves_unitary)
+print_log('info', "Is matrix unitary ?:\n", validate_unitary(gaussian_waves_unitary))
+
+# Confirm top left corner
+print_log('info', "Is top left corner of Unitary matrix equal to initial matrix, based on norm?:\n",
+          validate_top_left(gaussianwaves_matrix, gaussian_waves_norm, gaussian_waves_unitary))
+
+# %%
+# Quantum circuit of GaussianWaves Matrix
+gaussian_waves_circuit = create_unitary_circuit(gaussian_waves_unitary)
+print_log('info', "Quantum circuit of GaussianWaves Matrix:\n", get_decomposed_circuit(gaussian_waves_circuit))
 
 # %% [markdown]
-# ## <a id="quantum-transblocks-subtitle-anchor"> Quantum Transitions
-# [Add something here]... Since the transition matrix is not unitary in some (most?) cases, we must
-# compute the unitary matrix using the operator norm.
+# ## <a id="more-examples-title-anchor"> More Examples
 
 # %% [markdown]
-# ### <a id="compute-unitary-matrix-subtitle-anchor"> Compute Unitary Matrix
-# The operator norm, or spectral norm is the largest singular value of A.
-#
-# Singular values are the square roots of the eigenvalues of $A^{\dagger}A$
-#
-# Steps:
-# - Compute $P=A^{\dagger}A$
-# - Compute the eigenvalues of $P$.
-# - Find the maximum eigenvalue.
-# - Compute the square root of the maximum eigenvalue.
-#
-# Or oneliner:
-# $||A||_{2} = \sqrt{\lambda_{\max}(A^{\dagger}A)}$
-#
-# This equals to the norm of A, which:
-# - If less than 1: top left corner of the matrix is $C=A/||A||_{2}$
-# - If greater than 1: top left corner of the matrix is $A$
-#
-# So TopLeft equals A or C.
-# And the rest of the Unitary matrix U, equals to:
-# $$ U =
-# \begin{pmatrix}
-# TopLeft & \sqrt{I - TopLeft^{\dagger} TopLeft} \\\\
-# \sqrt{I - TopLeft TopLeft^{\dagger}} & - TopLeft^{\dagger}
-# \end{pmatrix}
-# $$
-#
-#
+# ### <a id="classical-coin-flip-example-subtitle-anchor"> Coin Flip Example
+# Here is a simple example of a coin flip Markov Chain
+# <sup>
+#  [[5]](#coin-flip-example-ref-anchor)
+# </sup>
+# where the coin can only have two states: heads (H) or tails (T). At each step, we flip the (fair, balanced) coin and produce the new state which is **H or T** with equal probability. The probability of each transition should be **$\frac{1}{2}$** and the transition matrix should look like:
+# $$P(H|H) = P(H|T) = P(T|H) = P(T|T) = \frac{1}{2}$$
+# <table>
+#   <tr><th>States</th><th>H</th><th>T</th></tr>
+#   <tr><th>H</th><td>$\frac{1}{2}$</td><td>$\frac{1}{2}$</td></tr>
+#   <tr><th>T</th><td>$\frac{1}{2}$</td><td>$\frac{1}{2}$</td></tr>
+# </table>
+
+# %%
+# Matrix
+coin_flip_matrix = np.array([[0.5, 0.5], [0.5, 0.5]])
+print_log('info', 'classical coin flip matrix =\n', coin_flip_matrix)
+
+# %%
+# Graph
+nodes=['H', 'T']
+edges=[('H', 'H', 0.5), ('H', 'T', 0.5),
+       ('T', 'H', 0.5), ('T', 'T', 0.5)]
+plot_graph(nodes, edges, 'Coin Flip Transition Graph')
+
+# %% [markdown]
+# <a href="#quantum-coin-flip-example-subtitle-anchor">[▼ Jump to Quantum Coin Flip Example ▼]</a>
 
 # %% [markdown]
 # ### <a id="quantum-coin-flip-example-subtitle-anchor"> Quantum Coin Flip Example
 # [Add coin flip example here]...
+
+# %% [markdown]
+# ### <a id="classical-code-example-subtitle-anchor"> Classical Code Example
+# Slides example of some transitions that consists of 4 states. The transition matrix should look like:
+# $$P(A|B) = P(A|C) = P(D|B) = P(D|C) = \frac{1}{2}$$
+# $$P(B|A) = P(B|B) = P(B|C) = P(B|D) = P(C|A) = P(C|B) = 0$$
+# $$P(B|C) = P(C|A) = 1$$
+# <table>
+#   <tr><th>States</th><th>A</th><th>B</th><th>C</th><th>D</th></tr>
+#   <tr><th>A</th><td>$0$</td><td>$\frac{1}{2}$</td><td>$\frac{1}{2}$</td><td>$0$</td></tr>
+#   <tr><th>B</th><td>$0$</td><td>$0$</td><td>$1$</td><td>$0$</td></tr>
+#   <tr><th>C</th><td>$1$</td><td>$0$</td><td>$0$</td><td>$0$</td></tr>
+#   <tr><th>D</th><td>$\frac{1}{2}$</td><td>$\frac{1}{2}$</td><td>$0$</td><td>$0$</td></tr>
+# </table>
+
+# %%
+# Matrix
+code_matrix = np.array([[0, 0.5, 0.5, 0],
+                        [0, 0, 1, 0],
+                        [1, 0, 0, 0],
+                        [0.5, 0.5, 0, 0]])
+print_log('info', 'classical code matrix =\n', code_matrix)
+
+# %%
+# Graph
+nodes=['A', 'B', 'C', 'D']
+edges=[('A', 'B', 0.5), ('A', 'C', 0.5),
+       ('B', 'C', 1),
+       ('C', 'D', 1),
+       ('D', 'A', 0.5), ('D', 'B', 0.5)]
+plot_graph(nodes, edges, 'Code Transition Graph')
+
+# %% [markdown]
+# <a href="#quantum-code-example-subtitle-anchor">[▼ Jump to Quantum Code Example ▼]</a>
 
 # %% [markdown]
 # ### <a id="quantum-code-example-subtitle-anchor"> Quantum Code Example
@@ -964,34 +1013,6 @@ print_log('info', "Is top left corner of Unitary equal to initial matrix, based 
 # Create Quantum Circuit
 code_circuit = create_unitary_circuit(code_unitary)
 print_log('info', "Quantum Circuit:\n", get_decomposed_circuit(code_circuit))
-
-# %% [markdown]
-# ### <a id="quantum-gaussianwaves-example-subtitle-anchor"> Quantum GaussianWaves Example
-# Classical transition matrix created in the [▲ Classical GaussianWaves Example ▲](#classical-gaussianwaves-example-subtitle-anchor).
-
-# %%
-# Initial Gaussian Waves Matrix
-print_log('info', "GaussianWaves Matrix:\n", gaussianwaves_matrix)
-print_log('info', "Is GaussianWaves Matrix unitary?:\n", validate_unitary(gaussianwaves_matrix))
-
-# %%
-# Norm
-gaussian_waves_norm = calc_norm(gaussianwaves_matrix)
-print_log('info', "Norm of GaussianWaves Matrix:\n", gaussian_waves_norm)
-
-# Make unitary
-gaussian_waves_unitary = calc_unitary(gaussianwaves_matrix, gaussian_waves_norm)
-print_log('info', "Unitary matrix that contains GaussianWaves Matrix in top left corner:\n", gaussian_waves_unitary)
-print_log('info', "Is matrix unitary ?:\n", validate_unitary(gaussian_waves_unitary))
-
-# Confirm top left corner
-print_log('info', "Is top left corner of Unitary matrix equal to initial matrix, based on norm?:\n",
-          validate_top_left(gaussianwaves_matrix, gaussian_waves_norm, gaussian_waves_unitary))
-
-# %%
-# Quantum circuit of GaussianWaves Matrix
-gaussian_waves_circuit = create_unitary_circuit(gaussian_waves_unitary)
-print_log('info', "Quantum circuit of GaussianWaves Matrix:\n", get_decomposed_circuit(gaussian_waves_circuit))
 
 # %% [markdown]
 # ### <a id="quantum-pennylane-example-subtitle-anchor"> Quantum Pennylane Example
