@@ -68,6 +68,26 @@
 
 # %% [markdown]
 # ### <a id="environment-setup-subtitle-anchor"> Environment Setup
+# - Package Manager <br>
+#   Install PIP package manager to install, update, manage 3rd party libraries <br>
+#   ```$ python -m ensurepip --upgrade```
+#   - pip                26.1.1
+# - Environment modules <br>
+#   Install these (required) environment modules <br>
+#   ```$ pip install <module>```
+#   - jupyterlab         4.5.7
+#   - jupytext           1.19.2
+#   - matplotlib         3.10.9
+#   - networkx           3.6.1
+#   - python-dotenv      1.2.2
+#   - qiskit-aer         0.17.2
+#   - qiskit-ibm-runtime 0.46.1
+#   - webcolors          25.10.0
+# - Connect to IBM <br>
+#   Set environmenet variables <br>
+#   ```$ export <env_var>=<value>```
+#   - IBMQ_INSTANCE
+#   - IBMQ_TOKEN
 
 # %% [markdown]
 # ### <a id="code-imports-and-functions-subtitle-anchor"> Code Imports & Functions
@@ -220,7 +240,7 @@ def plot_graph(N, E, title):
 #       label2:             label for matrix 2 sequence
 #       alpha:              alpha for hist graph
 #       bins:               bins for hist graph
-#       titles:         titles of transitions
+#       titles:             titles of transitions
 def plot_hist(matrix1_array, matrix2_array, title="Log-Odds Score Comparison",
               label1="1st sequence", label2="2nd sequence",
               labelx="log2-bits", labely="Frequency",
