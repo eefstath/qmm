@@ -8,7 +8,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.18.1
+#       jupytext_version: 1.19.2
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -40,6 +40,7 @@
 # ## Contents
 # - [Prerequisites](#prerequisites-title-anchor)
 #   - [Math & Probability Fundamentals](#math-and-probability-fundamentals-subtitle-anchor)
+#     - [Basic Terminology](#basic-terminology-section-anchor)
 #   - [Environment Setup](#environment-setup-subtitle-anchor)
 #   - [Code Imports & Functions](#code-imports-and-functions-subtitle-anchor)
 # - [Classical Markov Chains](#classical-markov-chains-title-anchor)
@@ -65,6 +66,22 @@
 
 # %% [markdown]
 # ### <a id="math-and-probability-fundamentals-subtitle-anchor"> Math & Probability Fundamentals
+
+# %% [markdown]
+# #### <a id="basic-terminology-section-anchor"> Basic Terminology <sup>[[7]](#basics-ref-anchor)</sup>
+# - **Experiment** <br>
+#   A trial in which a well-defined outcome is expected
+# - **Outcome** <br>
+#   The result of the Experiment
+# - **Sample Space** <br>
+#   A set of possible outcomes <br>
+#   Example: For a coin toss, $S=\{H,T\}$, where (H)ead and (T)ails
+# - **Theoretical Probability** <br>
+#   Probability of an event on the assumption that all outcomes are equal likely to occur <br>
+#   *P(event a) = Number of successful outcomes of event a / Total number of outcomes*
+# - **Empirical Probability** <br>
+#   Probability of an event based on observed data or experimental results <br>
+#   *P(event a) = Number of times event a occured / Total number of trials*
 
 # %% [markdown]
 # ### <a id="environment-setup-subtitle-anchor"> Environment Setup
@@ -1097,6 +1114,11 @@ print_log('info', "Quantum PennyLane Circuit:\n", get_decomposed_circuit(pennyla
 # - <a id="pennylane-example-ref-anchor"></a>[6]
 #   <a href="https://pennylane.ai/qml/demos/tutorial_intro_qsvt">
 #   Pennylane Example
+# - <a id="basics-ref-anchor"></a>[7] GeekForGeeks
+#   - <a href="https://www.geeksforgeeks.org/maths/probability-theory/">
+#   Probability Theory
+#   - <a href="https://www.geeksforgeeks.org/maths/probability-distribution/">
+#   Probability Distributions
 
 # %% [markdown]
 # <a href="#header-title-anchor">[▲ Back to Top ▲]</a>
