@@ -220,8 +220,8 @@ def plot_graph(N, E, title):
 #       label2:             label for matrix 2 sequence
 #       alpha:              alpha for hist graph
 #       bins:               bins for hist graph
-def plot_hist(matrix1_array, matrix2_array, title="Log-Odds Score Comparison",
 #       titles:         titles of transitions
+def plot_hist(matrix1_array, matrix2_array, title="Log-Odds Score Comparison",
               label1="1st sequence", label2="2nd sequence",
               labelx="log2-bits", labely="Frequency",
               alpha=0.7, bins=50):
