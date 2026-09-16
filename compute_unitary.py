@@ -79,9 +79,34 @@
 # - **Theoretical Probability** <br>
 #   Probability of an event on the assumption that all outcomes are equal likely to occur <br>
 #   *P(event a) = Number of successful outcomes of event a / Total number of outcomes*
+# - **Probablity Axioms (Kolmogorov)** <br>
+#   1. Probabilities must be equal of greater than 0: $P(A) \ge 0$
+#   2. When running an experiment in a sample space S, an outcome is always certain: $P(S)=1$ <br>
+#      So, all possible outcomes add up to one: $P(A1)+P(A2)+...+P(An)=1$
+#   3. Mutual exclusive outcomes of an experiment: <br>
+#      $P(A \cap B)=0$ <br>
+#      $P(A \cup B)=P(A)+P(B)$
 # - **Empirical Probability** <br>
 #   Probability of an event based on observed data or experimental results <br>
 #   *P(event a) = Number of times event a occured / Total number of trials*
+# - **Conditional Probability** <br>
+#   Probability of an event occuring given a specific condition or prior knowledge of another event <br>
+#   $P(A \mid B)=\frac{P(A \cap B)}{P(A)}$
+#   - *Example*: In a deck of 52 cards, draw A, a red card and then B, a red card:$P(B \mid A)$ <br>
+#                First red card -> $52-1=51$ total cards remaining, $26-1=25$ red cards remaining. <br>
+#                $P(B \mid A)=\frac{25}{51}=0.49$ or $49$% of drawing a red card after the 1st is red. <br>
+#   - *More*: The intersection $P(A \cap B)=P(A)*P(B \mid A)=0.5*0.49~=0.2451$ or $24.5$% of <br>
+#             getting two red cards in a row.
+# - **Law of Total Probability**<sup>[[8]](#total-prob-anchor)</sup> <br>
+#   Calculates the probabiltiy of an event A, of a sample space S, by breaking S into multiple Cn, <br>
+#   0-probability events. $P(A)=\sum_{k=0}^{N} P(Cn)P(A|Cn)$
+# - **Chain Probability** <sup>[[9]](#chain-prob-anchor)</sup> <br>
+#   The joint probability of a sequence of events can be computed by multiplying the conditional <br>
+#   probabilities of each event, given the events preceding it: <br>
+#   $P(A1,A2,A3)=P(A1)P(A2|A1)P(A3|A1,A2)$
+# - **Stochastic Matrix (or Probability Matrix)** <br>
+#   A matrix where all elements are non-negative and the sum of the elements in each row equals one.<br>
+#   Each row is a *stochastic vector (or probability vector)*.
 
 # %% [markdown]
 # ### <a id="environment-setup-subtitle-anchor"> Environment Setup
@@ -1117,8 +1142,16 @@ print_log('info', "Quantum PennyLane Circuit:\n", get_decomposed_circuit(pennyla
 # - <a id="basics-ref-anchor"></a>[7] GeekForGeeks
 #   - <a href="https://www.geeksforgeeks.org/maths/probability-theory/">
 #   Probability Theory
+#   - <a href="https://www.geeksforgeeks.org/maths/conditional-probability/">
+#   Conditional Probability
 #   - <a href="https://www.geeksforgeeks.org/maths/probability-distribution/">
 #   Probability Distributions
+# - <a id="total-prob-anchor"></a>[8]
+#   <a href="https://byjus.com/maths/total-probability-theorem/">
+#   Total Probability Theorem
+# - <a id="chain-prob-anchor"></a>[9]
+#   <a href="https://medium.com/@fr4nk/understanding-the-chain-rule-of-probability-for-language-models-c31864d24ad5">
+#   Chain Rule of Probability
 
 # %% [markdown]
 # <a href="#header-title-anchor">[▲ Back to Top ▲]</a>
