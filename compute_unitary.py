@@ -38,13 +38,12 @@
 
 # %% [markdown]
 # ## Contents
-# - [Prerequisites](#prerequisites-title-anchor)
-#   - [Math & Probability Fundamentals](#math-and-probability-fundamentals-subtitle-anchor)
-#     - [Basic Terminology](#basic-terminology-section-anchor)
-#   - [Environment Setup](#environment-setup-subtitle-anchor)
-#   - [Code Imports & Functions](#code-imports-and-functions-subtitle-anchor)
-# - [Classical Markov Chains](#classical-markov-chains-title-anchor)
-#   - [Transitions](#transitions-subtitle-anchor)
+# - [Math & Probability Fundamentals](#math-and-probability-fundamentals-title-anchor)
+#   - [Basic Terminology](#basic-terminology-fund-subtitle-anchor)
+#   - [Markov Models](#markov-models-fund-subtitle-anchor)
+#   - [Transitions](#transitions-fund-subtitle-anchor)
+# - [Environment Setup](#environment-setup-title-anchor)
+# - [Code Imports & Functions](#code-imports-and-functions-title-anchor)
 # - [Quantum Markov Chains](#quantum-markov-chains-title-anchor)
 #   - [Quantum Transitions](#quantum-transitions-subtitle-anchor)
 #   - [Compute Unitary Matrix](#compute-unitary-matrix-subtitle-anchor)
@@ -62,34 +61,31 @@
 # - [References](#references-title-anchor)
 
 # %% [markdown]
-# ## <a id="prerequisites-title-anchor"> Prerequisites
+# ## <a id="math-and-probability-fundamentals-title-anchor"> Math & Probability Fundamentals
 
 # %% [markdown]
-# ### <a id="math-and-probability-fundamentals-subtitle-anchor"> Math & Probability Fundamentals
-
-# %% [markdown]
-# #### <a id="basic-terminology-section-anchor"> Basic Terminology <sup>[[7]](#basics-ref-anchor)</sup>
-# - **Experiment** <br>
+# ### <a id="basic-terminology-fund-subtitle-anchor"> Basic Terminology
+# - **Experiment** <sup>[[7]](#basics-ref-anchor)</sup> <br>
 #   A trial in which a well-defined outcome is expected
-# - **Outcome** <br>
+# - **Outcome** <sup>[[7]](#basics-ref-anchor)</sup> <br>
 #   The result of the Experiment
-# - **Sample Space** <br>
+# - **Sample Space** <sup>[[7]](#basics-ref-anchor)</sup> <br>
 #   A set of possible outcomes <br>
 #   Example: For a coin toss, $S=\{H,T\}$, where (H)ead and (T)ails
-# - **Theoretical Probability** <br>
+# - **Theoretical Probability** <sup>[[7]](#basics-ref-anchor)</sup> <br>
 #   Probability of an event on the assumption that all outcomes are equal likely to occur <br>
 #   *P(event a) = Number of successful outcomes of event a / Total number of outcomes*
-# - **Probablity Axioms (Kolmogorov)** <br>
+# - **Probablity Axioms (Kolmogorov)** <sup>[[7]](#basics-ref-anchor)</sup> <br>
 #   1. Probabilities must be equal of greater than 0: $P(A) \ge 0$
 #   2. When running an experiment in a sample space S, an outcome is always certain: $P(S)=1$ <br>
 #      So, all possible outcomes add up to one: $P(A1)+P(A2)+...+P(An)=1$
 #   3. Mutual exclusive outcomes of an experiment: <br>
 #      $P(A \cap B)=0$ <br>
 #      $P(A \cup B)=P(A)+P(B)$
-# - **Empirical Probability** <br>
+# - **Empirical Probability** <sup>[[7]](#basics-ref-anchor)</sup> <br>
 #   Probability of an event based on observed data or experimental results <br>
 #   *P(event a) = Number of times event a occured / Total number of trials*
-# - **Conditional Probability** <br>
+# - **Conditional Probability** <sup>[[7]](#basics-ref-anchor)</sup> <br>
 #   Probability of an event occuring given a specific condition or prior knowledge of another event <br>
 #   $P(A \mid B)=\frac{P(A \cap B)}{P(A)}$
 #   - *Example*: In a deck of 52 cards, draw A, a red card and then B, a red card:$P(B \mid A)$ <br>
@@ -106,10 +102,56 @@
 #   $P(A1,A2,A3)=P(A1)P(A2|A1)P(A3|A1,A2)$
 # - **Stochastic Matrix (or Probability Matrix)** <br>
 #   A matrix where all elements are non-negative and the sum of the elements in each row equals one.<br>
-#   Each row is a *stochastic vector (or probability vector)*.
+#   Each row is a *stochastic vector (or probability vector)*. <br>
+#   A *stochastic vector* embodies Kolmogorov's probability axioms (see above).
 
 # %% [markdown]
-# ### <a id="environment-setup-subtitle-anchor"> Environment Setup
+# ### <a id="markov-models-fund-subtitle-anchor"> Markov Models
+# A Markov Chain
+# <sup>
+#   [[1]](#stochastic-model-ref-anchor)
+#   [[2]](#markov-chain-ref-anchor)
+#   [[3]](#markov-chain-simplified-ref-anchor)
+# </sup>
+# is a stochastic model where the probability of a state at time $t+1$ only depends on the state at time $t$. The states are defined by a sequence of possible probabilistic events. Markov processes are conditionally independent of the previous values of the process and, as in our case, only consider the current state. Such Markov Models Chains are called **First Order Markov Chains**.
+# <sup>
+#   [[3]](#markov-chain-simplified-ref-anchor)
+# </sup>
+# By definition:
+# $$ p(q_{n}|q_{1}...q_{n-1}) = p(q_{n}|q_{n-1}) $$
+# Markov Chains can be seperated into two types, based on their state space
+# <sup>
+#   [[2]](#markov-chain-ref-anchor)
+# </sup>
+# :
+# - Discrete-time (DTMC): Countable or finite state space. Each step made towards the next state is a discrete measurement.
+# - Continuous-time (CTMC): Uncountable or infinite state space
+
+# %% [markdown]
+# ### <a id="transitions-fund-subtitle-anchor"> Transitions
+# The changes of the state of the system are called *transitions* and the matrix that describes the probabilities associated with each transition is called a **transition matrix**
+# <sup>
+#   [[2]](#markov-chain-ref-anchor)
+# </sup>
+# .
+# In a transition matrix called $A$, each element $a_{ij}$ represents the probability of transitioning from state $i$ to state $j$. Given the *conditional definition* we can construct the transition matrix as follows:
+# <table>
+#   <tr><th>States</th><th>State 1</th><th>State 2</th><th>State n</th></tr>
+#   <tr><th>State 1</th><td>$P(State_{1}|State_{1})$</td><td>$P(State_{1}|State_{2})$</td><td>$P(State_{1}|State_{n})$</td></tr>
+#   <tr><th>State 2</th><td>$P(State_{2}|State_{1})$</td><td>$P(State_{2}|State_{2})$</td><td>$P(State_{2}|State_{n})$</td></tr>
+#   <tr><th>State n</th><td>$P(State_{n}|State_{1})$</td><td>$P(State_{n}|State_{2})$</td><td>$P(State_{n}|State_{n})$</td></tr>
+# </table>
+#
+# The elements of the transition matrix are non-negative and must satisfy the condition that the sum of the probabilities of all transitions out of a state must be equal to one. By definition
+# : $\sum_{j=1}^{n} a_{ij} = 1$
+# <sup>
+#   [[3]](#markov-chain-simplified-ref-anchor)
+# </sup>
+# <br>
+# The Markov process must also be characterized by an *initial staste* (or initial distribution) across the state space.
+
+# %% [markdown]
+# ## <a id="environment-setup-title-anchor"> Environment Setup
 # - Package Manager <br>
 #   Install PIP package manager to install, update, manage 3rd party libraries <br>
 #   ```$ python -m ensurepip --upgrade```
@@ -132,7 +174,7 @@
 #   - IBMQ_TOKEN
 
 # %% [markdown]
-# ### <a id="code-imports-and-functions-subtitle-anchor"> Code Imports & Functions
+# ## <a id="code-imports-and-functions-title-anchor"> Code Imports & Functions
 
 # %% {"jupyter": {"source_hidden": true}}
 # Imports
@@ -749,56 +791,6 @@ def compare_sequence_classical(titles, matrix1, matrix2=None, init_step=None, ti
 # %% [markdown]
 # ## <a id="markov-chains-title-anchor"> Markov Chains
 # A Markov Chain
-# <sup>
-#   [[1]](#stochastic-model-ref-anchor)
-#   [[2]](#markov-chain-ref-anchor)
-#   [[3]](#markov-chain-simplified-ref-anchor)
-# </sup>
-# is a stochastic model
-# <sup>
-#   [{1}](#stochastic-model-def-anchor)
-# </sup>
-# where the probability of a state at time $t+1$ only depends on the state at time $t$. The states are defined by a sequence of possible probabilistic events. Markov processes are conditionally independent of the previous values of the process and, as in our case, only consider the current state. Such Markov Models Chains are called **First Order Markov Chains**.
-# <sup>
-#   [[3]](#markov-chain-simplified-ref-anchor)
-# </sup>
-# By definition:
-# $$ p(q_{n}|q_{1}...q_{n-1}) = p(q_{n}|q_{n-1}) $$
-# Markov Chains can be seperated into two types, based on their state space
-# <sup>
-#   [[2]](#markov-chain-ref-anchor)
-# </sup>
-# :
-# - Discrete-time (DTMC): Countable or finite state space. Each step made towards the next state is a discrete measurement.
-# - Continuous-time (CTMC): Uncountable or infinite state space
-
-# %% [markdown]
-# ### <a id="transitions-subtitle-anchor"> Transitions
-# The changes of the state of the system are called *transitions* and the matrix that describes the probabilities associated with each transition is called a **transition matrix**
-# <sup>
-#   [[2]](#markov-chain-ref-anchor)
-# </sup>
-# .
-# In a transition matrix called $A$, each element $a_{ij}$ represents the probability of transitioning from state $i$ to state $j$. Given the *conditional definition*
-# <sup>
-#   [{2}](#cond-prob-def-anchor)
-# </sup>
-# we can construct the transition matrix as follows:
-# <table>
-#   <tr><th>States</th><th>State 1</th><th>State 2</th><th>State n</th></tr>
-#   <tr><th>State 1</th><td>$P(State_{1}|State_{1})$</td><td>$P(State_{1}|State_{2})$</td><td>$P(State_{1}|State_{n})$</td></tr>
-#   <tr><th>State 2</th><td>$P(State_{2}|State_{1})$</td><td>$P(State_{2}|State_{2})$</td><td>$P(State_{2}|State_{n})$</td></tr>
-#   <tr><th>State n</th><td>$P(State_{n}|State_{1})$</td><td>$P(State_{n}|State_{2})$</td><td>$P(State_{n}|State_{n})$</td></tr>
-# </table>
-#
-# The elements of the transition matrix are non-negative and must satisfy the condition that the sum of the probabilities of all transitions out of a state must be equal to one. By definition
-# : $\sum_{j=1}^{n} a_{ij} = 1$
-# <sup>
-#   [[3]](#markov-chain-simplified-ref-anchor)
-# </sup>
-# <br>
-# The Markov process must also be characterized by an *initial staste* (or initial distribution) across the state space.
-
 
 # %% [markdown]
 # ## <a id="quantum-markov-chains-title-anchor"> Quantum Markov Chain
@@ -1107,17 +1099,6 @@ print_log('info', "Quantum PennyLane Circuit:\n", get_decomposed_circuit(pennyla
 
 # %% [markdown]
 # ## <a id="appendix-title-anchor"> Appendix
-# ### <a id="definitions-subtitle-anchor"> Definitions
-# - <a id="stochastic-model-def-anchor"></a>{1}
-#   *Stochastic Model*
-#   <sup>[[1]](#stochastic-model-ref-anchor)</sup>
-#   :<br>
-#   A mathematical object that consists of a family of random variables in a probability space, all of which are associated with an index set. The index set often has the interpretation of time. Example stochastic models are Markov chains, Bernouli processes, Poisson processes. <br>
-# - <a id="cond-prob-def-anchor"></a>{2}
-#   *Conditional Probability*
-#   <sup>[[4]](#bayes-rule-ref-anchor)</sup>
-#   :<br>
-#   The probability of event *i* occuring given that event *j* has already occured. <br>
 
 # %% [markdown]
 # ## <a id="references-title-anchor"> References
