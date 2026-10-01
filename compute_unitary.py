@@ -8,7 +8,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.19.2
+#       jupytext_version: 1.18.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -42,6 +42,7 @@
 #   - [Basic Terminology](#basic-terminology-fund-subtitle-anchor)
 #   - [Markov Models](#markov-models-fund-subtitle-anchor)
 #   - [Transitions](#transitions-fund-subtitle-anchor)
+#   - [$n$-Step Transition](#n-step-transition-fund-subtitle-anchor)
 # - [Environment Setup](#environment-setup-title-anchor)
 # - [Code Imports & Functions](#code-imports-and-functions-title-anchor)
 # - [Quantum Markov Chains](#quantum-markov-chains-title-anchor)
@@ -87,12 +88,15 @@
 #   *P(event a) = Number of times event a occured / Total number of trials*
 # - **Conditional Probability** <sup>[[7]](#basics-ref-anchor)</sup> <br>
 #   Probability of an event occuring given a specific condition or prior knowledge of another event <br>
-#   $P(A \mid B)=\frac{P(A \cap B)}{P(A)}$
-#   - *Example*: In a deck of 52 cards, draw A, a red card and then B, a red card:$P(B \mid A)$ <br>
+#   $P(B \mid A)=\frac{P(A \cap B)}{P(A)}$
+#   - *Example*: In a deck of 52 cards, draw A, a red card and then B, a red card: $P(B \mid A)$ <br>
 #                First red card -> $52-1=51$ total cards remaining, $26-1=25$ red cards remaining. <br>
 #                $P(B \mid A)=\frac{25}{51}=0.49$ or $49$% of drawing a red card after the 1st is red. <br>
+#                In other words, there is a $49$% chance of your next card to be red, only after your first <br>
+#                one already is red.
 #   - *More*: The intersection $P(A \cap B)=P(A)*P(B \mid A)=0.5*0.49~=0.2451$ or $24.5$% of <br>
-#             getting two red cards in a row.
+#             getting two red cards in a row. Or, there is a $24.5$% chance of getting 2 red cards in a row <br>
+#             before having drawn any cards from your deck.
 # - **Law of Total Probability**<sup>[[8]](#total-prob-anchor)</sup> <br>
 #   Calculates the probabiltiy of an event A, of a sample space S, by breaking S into multiple Cn, <br>
 #   0-probability events. $P(A)=\sum_{k=0}^{N} P(Cn)P(A|Cn)$
@@ -107,7 +111,7 @@
 
 # %% [markdown]
 # ### <a id="markov-models-fund-subtitle-anchor"> Markov Models
-# A Markov Chain
+# A Markov Model is a probabilistic model, used to define the changes over time in a system. A **Markov Chain**
 # <sup>
 #   [[1]](#stochastic-model-ref-anchor)
 #   [[2]](#markov-chain-ref-anchor)
@@ -149,6 +153,39 @@
 # </sup>
 # <br>
 # The Markov process must also be characterized by an *initial staste* (or initial distribution) across the state space.
+#
+# *Example:*
+# <table>
+#   <tr><th>States</th><th>State 0</th><th>State 1</th><th>State 2</th></tr>
+#   <tr><th>State 0</th><td>$0.6$</td><td>$0.2$</td><td>$0.2$</td></tr>
+#   <tr><th>State 1</th><td>$0.3$</td><td>$0.5$</td><td>$0.2$</td></tr>
+#   <tr><th>State 2</th><td>$0.4$</td><td>$0.3$</td><td>$0.3$</td></tr>
+# </table>
+
+# %% [markdown]
+# ### <a id="n-step-transition-fund-subtitle-anchor"> $n$-Step Transition
+# According to Chapman-Kolmogorov equation<sup>[[10]](#chapman-kolmogorov-anchor)</sup>, we can calculate the probability of transition from state $i$ to state $j$
+# after $n$ steps as follows:
+# $$P^n_{i \rightarrow j} = P(State_{m+n}=j|State_{m}=i)$$, where *m* is the beginning state.
+# Considering the example above, to calculate the 2-step transitions of P^2_{02}, we can simply:
+# $$P^2_{02} = \sum_{k=0}^{2}P_{0k}P_{k2} \Rightarrow P^2_{02} = P_{00}P_{02} + P_{01}P_{12} +P_{02}P_{22} = 0.6*0.5+0.2*0.2+0.2*0.3 = 0.22$$
+# This calculation essentialy is the row x column multiplication of the transition matrix first row x third column:
+# $$ \begin{pmatrix} 0.6 & 0.2 & 0.2 \end{pmatrix} \begin{pmatrix} 0.2 \\\\ 0.2 \\\\ 0.3 \end{pmatrix} = \begin{pmatrix} 0.22 \end{pmatrix} $$
+# Similarly, we can calculate other 2-step transitions like: $P^2_{12}=[0.22]$ and $P^2_{22}=[0.23]$.
+# Then, we can move on to 3-step transitions like:
+# $ P^3_{02} = \sum_{k=0}^{2}P_{0k}P^{2}_{k2} $, which means we can use our previous steps to calculate the next step transitions.<br>
+# **In conclusion**, we can calculate all $n$-step transitions by multiplying the transition matrix by itself $n$ times.
+# $$Q_{n} = P^{n} $$, where P is the one-step probability matrix, like in our example.
+#
+# *Example:*
+# Calculate: <br>
+# - $P(X_{3}=1 | X_{0}=0)$ <br>
+# - $P(X_{5}=2 | X_{2}=0)$ <br>
+# In both cases, we take **3 steps**, as calculated by $m-n=3-0=5-2=3$.<br>
+# So, in both cases we need $P^3$ and then get the (0,1) and (0,2) entries of the matrix.
+# *Skipping calculation steps*, $P^3_{01}=0.306$ and $P^3_{02}=0.222$
+#
+# There is a helper function that finds the t-step probability matrix: `step_transition()`.
 
 # %% [markdown]
 # ## <a id="environment-setup-title-anchor"> Environment Setup
@@ -789,10 +826,6 @@ def compare_sequence_classical(titles, matrix1, matrix2=None, init_step=None, ti
     return target_array, bg_array
 
 # %% [markdown]
-# ## <a id="markov-chains-title-anchor"> Markov Chains
-# A Markov Chain
-
-# %% [markdown]
 # ## <a id="quantum-markov-chains-title-anchor"> Quantum Markov Chain
 # [Add something here]
 
@@ -1133,6 +1166,9 @@ print_log('info', "Quantum PennyLane Circuit:\n", get_decomposed_circuit(pennyla
 # - <a id="chain-prob-anchor"></a>[9]
 #   <a href="https://medium.com/@fr4nk/understanding-the-chain-rule-of-probability-for-language-models-c31864d24ad5">
 #   Chain Rule of Probability
+# - <a id="chapman-kolmogorov-anchor"></a>[10]
+#   <a href="https://probabilitytopics.wordpress.com/2017/09/09/chapman-kolmogorov-equations/">
+#   Chapman-Kolmogorov Equation
 
 # %% [markdown]
 # <a href="#header-title-anchor">[▲ Back to Top ▲]</a>
