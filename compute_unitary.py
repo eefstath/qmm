@@ -108,6 +108,25 @@
 #   A matrix where all elements are non-negative and the sum of the elements in each row equals one.<br>
 #   Each row is a *stochastic vector (or probability vector)*. <br>
 #   A *stochastic vector* embodies Kolmogorov's probability axioms (see above).
+# - **Odds** <sup>[[11]](#odds-anchor)</sup> <br>
+#   Odds (of success) is defined as the ratio of the probability of success to the probability of failure. <br>
+#   $Odds = \frac{P(success)}{P(failure)}=\frac{P(success)}{1-P(success)}$ <br>
+#   - *Example:* For 80% change of rain (and 20% of not raining), the odds of rain is $Odds = \frac{0.8}{0.2}=4$ <br>
+#                So its 4 times more likely to rain (4:1). If it was the other way around, <br>
+#                a 20% chance of rain would be $Odds = \frac{0.2}{0.8}=0.25$ <br>
+#                Putting this into perspective, when $P(success)>P(failure)$, the odds are greater than 1. <br>
+#                But when $P(success)<P(failure)$, the odds are less than 1 and close to 0. <br>
+#                In order to make the odds symmetrical around zero, the log-odds are used.
+# - **Log-Odds**
+#   Conversion to log-odds results in symmetry around zero, for easier analysis. <br>
+#   - *Example:* 4:1 ratio is converted to $Log(4)=1.09$ and 0.25 ratio is converted to $Log(0.25)=-1.09$
+# - **Log-Likehood-Ratio(LLR)** <sup>[[12]](#llr-anchor)</sup> <br>
+#   Statistical score comparing the probabilities of an observation under two competing models: <br>
+#   $LLR=log_2(\frac{P(Model_1)}{P(Model_2)})$ <br>
+#   It quantifies how strongly a state trajectory favors a target Markov Model over an alternative. <br>
+#   Example in *GaussianWaves* later on (and Quantum Process coming soon).
+#   There are multiple helper functions that calculate it: `calc_betas`, `simulate_sequence_classical` and <br>
+#   `compare_sequence_classical`. Plots done via `plot_hist`.
 
 # %% [markdown]
 # ### <a id="markov-models-fund-subtitle-anchor"> Markov Models
@@ -130,6 +149,11 @@
 # :
 # - Discrete-time (DTMC): Countable or finite state space. Each step made towards the next state is a discrete measurement.
 # - Continuous-time (CTMC): Uncountable or infinite state space
+#
+# **Chain Probability for First Order Markov Chains**<br>
+# First order Markov Chains simplify the chain probability calculation of events happenning in a sequence, because each state only depends in the previous state, so:
+# $P(A1,A2,A3)=P(A1)P(A2|A1)P(A3|A1,A2)=P(A1)P(A2|A1)P(A3|A2)$, which translates to:
+# $$P(A0,A1,...,At)=P(A0)P(A1|A0)...P(At|At-1)$$
 
 # %% [markdown]
 # ### <a id="transitions-fund-subtitle-anchor"> Transitions
@@ -167,7 +191,7 @@
 # According to Chapman-Kolmogorov equation<sup>[[10]](#chapman-kolmogorov-anchor)</sup>, we can calculate the probability of transition from state $i$ to state $j$
 # after $n$ steps as follows:
 # $$P^n_{i \rightarrow j} = P(State_{m+n}=j|State_{m}=i)$$, where *m* is the beginning state.
-# Considering the example above, to calculate the 2-step transitions of P^2_{02}, we can simply:
+# Considering the example above, to calculate the 2-step transitions of $P^2_{02}$, we can simply:
 # $$P^2_{02} = \sum_{k=0}^{2}P_{0k}P_{k2} \Rightarrow P^2_{02} = P_{00}P_{02} + P_{01}P_{12} +P_{02}P_{22} = 0.6*0.5+0.2*0.2+0.2*0.3 = 0.22$$
 # This calculation essentialy is the row x column multiplication of the transition matrix first row x third column:
 # $$ \begin{pmatrix} 0.6 & 0.2 & 0.2 \end{pmatrix} \begin{pmatrix} 0.2 \\\\ 0.2 \\\\ 0.3 \end{pmatrix} = \begin{pmatrix} 0.22 \end{pmatrix} $$
@@ -1169,6 +1193,12 @@ print_log('info', "Quantum PennyLane Circuit:\n", get_decomposed_circuit(pennyla
 # - <a id="chapman-kolmogorov-anchor"></a>[10]
 #   <a href="https://probabilitytopics.wordpress.com/2017/09/09/chapman-kolmogorov-equations/">
 #   Chapman-Kolmogorov Equation
-
+# - <a id="odds-anchor"></a>[11]
+#   <a href="https://www.statisticshowto.com/log-odds/">
+#   Log Odds
+# - <a id="llr-anchor"></a>[12]
+#   <a href="https://medium.com/data-science/the-likelihood-ratio-test-463455b34de9">
+#   Log Likelihood Ratio (Test)
+#
 # %% [markdown]
 # <a href="#header-title-anchor">[▲ Back to Top ▲]</a>
