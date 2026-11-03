@@ -43,6 +43,8 @@
 #   - [Markov Models](#markov-models-fund-subtitle-anchor)
 #   - [Transitions](#transitions-fund-subtitle-anchor)
 #   - [$n$-Step Transition](#n-step-transition-fund-subtitle-anchor)
+# - [Quantum Basics](#quantum-basics-title-anchor)
+#   - [Partial Measurement & Renormalization](#partial-norm-subtitle-anchor)
 # - [Environment Setup](#environment-setup-title-anchor)
 # - [Code Imports & Functions](#code-imports-and-functions-title-anchor)
 # - [Quantum Markov Chains](#quantum-markov-chains-title-anchor)
@@ -192,7 +194,7 @@
 # after $n$ steps as follows:
 # $$P^n_{i \rightarrow j} = P(State_{m+n}=j|State_{m}=i)$$, where *m* is the beginning state.
 # Considering the example above, to calculate the 2-step transitions of $P^2_{02}$, we can simply:
-# $$P^2_{02} = \sum_{k=0}^{2}P_{0k}P_{k2} \Rightarrow P^2_{02} = P_{00}P_{02} + P_{01}P_{12} +P_{02}P_{22} = 0.6*0.5+0.2*0.2+0.2*0.3 = 0.22$$
+# $$P^2_{02} = \sum_{k=0}^{2}P_{0k}P_{k2} \rightarrow P^2_{02} = P_{00}P_{02} + P_{01}P_{12} +P_{02}P_{22} = 0.6*0.5+0.2*0.2+0.2*0.3 = 0.22$$
 # This calculation essentialy is the row x column multiplication of the transition matrix first row x third column:
 # $$ \begin{pmatrix} 0.6 & 0.2 & 0.2 \end{pmatrix} \begin{pmatrix} 0.2 \\\\ 0.2 \\\\ 0.3 \end{pmatrix} = \begin{pmatrix} 0.22 \end{pmatrix} $$
 # Similarly, we can calculate other 2-step transitions like: $P^2_{12}=[0.22]$ and $P^2_{22}=[0.23]$.
@@ -210,6 +212,26 @@
 # *Skipping calculation steps*, $P^3_{01}=0.306$ and $P^3_{02}=0.222$
 #
 # There is a helper function that finds the t-step probability matrix: `step_transition()`.
+
+# %% [markdown]
+# ## <a id="quantum-basics-title-anchor"> Quantum Basics
+
+# ### <a id="partial-norm-subtitle-anchor"> Partial Measurement & Renormalization
+# - **Partial Measurement**<sup>[[13]](#qc-anchor)</sup><br>
+#   Measuring some of the qubits of a multi-qubit system in the computational basis resulting in the collapsing of the qubit in a basis state.
+#   Then, the part of the state that matches the result must be kept, throwing away the rest.
+# - **Renormalize**<br>
+#   Rescale what is left so that it is a valid state again, by dividing the terms by the square root of the addition of the remaining probabilities.<br>
+#   *NOTE*: Rescale is necessary because the initial state is already normalized, having the sum of the squared prob. amplitudes equal to 1 (length).<br>
+# - **Example**<br>
+#   $State:\frac{1}{2}|00> + \frac{1}{2}|01> + \frac{1}{\sqrt{2}}|10>$ and $Length=1/4+1/4+1/2=1$ <br>
+#   $\rightarrow$ measure first qubit that collapses to 0 <br>
+#   $\rightarrow$ Filter out states that have 1 as first qubit<br>
+#   $\rightarrow$ $RemainingState:\frac{1}{2}|00> + \frac{1}{2}|01>$ $\rightarrow$ $RemainingState:|0>(\frac{1}{2}0> + \frac{1}{2}|1>)$<br>
+#   $\rightarrow$ $SecondQubitState:\frac{1}{2}|0> + \frac{1}{2}|1>$<br>
+#   $\rightarrow$ measure probability of remaining states: $\frac{1}{4}+\frac{1}{4}$<br>
+#   $\rightarrow$ divide by square root of addition of remaining probabilities: $RescaledSecondQubitState:\frac{|0> + |1>}{\sqrt{2}}$
+#   Now, the state is again normalized.
 
 # %% [markdown]
 # ## <a id="environment-setup-title-anchor"> Environment Setup
@@ -1199,6 +1221,8 @@ print_log('info', "Quantum PennyLane Circuit:\n", get_decomposed_circuit(pennyla
 # - <a id="llr-anchor"></a>[12]
 #   <a href="https://medium.com/data-science/the-likelihood-ratio-test-463455b34de9">
 #   Log Likelihood Ratio (Test)
-#
+# - <a id="qc-anchor"></a>[13]
+#   Andy Matuschak and Michael A. Nielsen, “How Quantum Teleportation Works”, https://quantum.country/teleportation, San Francisco (2019).
+
 # %% [markdown]
 # <a href="#header-title-anchor">[▲ Back to Top ▲]</a>
